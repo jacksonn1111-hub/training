@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="홈트 15분">
+<title>홈트 15분</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+:root{
+  --bg:#0a0a0f;--card:#14141f;--accent:#ff6b35;--green:#22c55e;--blue:#3b82f6;
+  --text:#f0f0f5;--dim:#6b6b80;--border:#1e1e2e;--rest:#a855f7;
+}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;
+  min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;
+  align-items:center;overflow-x:hidden;
+  padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+}
+button{font-family:inherit;cursor:pointer;border:none;outline:none;transition:transform .1s}
+button:active{transform:scale(.96)}
+
+.header{width:100%;max-width:420px;padding:16px 20px 8px;display:flex;justify-content:space-between;align-items:center}
+.header-label{font-size:13px;color:var(--dim)}
+.header-time{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--dim)}
+
+.progress-bar{width:calc(100% - 40px);max-width:400px;height:4px;background:var(--border);border-radius:2px;margin:4px 0 12px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:2px;transition:width .5s ease}
+
+.screen{flex:1;display:flex;flex-direction:column;align-items:center;padding:12px 20px 24px;max-width:420px;width:100%;gap:12px}
+.screen.center{justify-content:center;gap:20px}
+
+.ex-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:14px;width:100%}
+.ex-card .emoji{font-size:28px;flex-shrink:0}
+.ex-card .name{font-size:15px;font-weight:600}
+.ex-card .detail{font-size:12px;color:var(--dim);margin-top:2px}
+
+.info-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 16px;width:100%}
+.info-box .label{font-size:11px;color:var(--dim);font-weight:600;margin-bottom:4px}
+.info-box .body{font-size:12px;line-height:1.6;color:var(--text)}
+
+.ring-wrap{position:relative;flex-shrink:0}
+.ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-big{font-size:52px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.ring-sub{font-size:13px;color:var(--dim);margin-top:4px}
+
+.cmd-badge{font-size:24px;font-weight:800;letter-spacing:.05em;padding:14px 36px;border-radius:24px;transition:all .3s;animation:fadeSlide .3s ease}
+.cmd-down{color:var(--blue);background:rgba(59,130,246,.2);border:2px solid rgba(59,130,246,.3)}
+.cmd-up{color:var(--green);background:rgba(34,197,94,.2);border:2px solid rgba(34,197,94,.3)}
+.cmd-hold{color:var(--blue);background:rgba(59,130,246,.15);font-size:16px;font-weight:600;padding:8px 20px;border-radius:20px}
+
+.btn-row{display:flex;gap:12px;width:100%;margin-top:auto;padding-top:8px}
+.btn-primary{width:100%;padding:18px;font-size:18px;font-weight:700;background:linear-gradient(135deg,var(--accent),#ff8c5a);color:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(255,107,53,.3)}
+.btn-pause{flex:1;padding:14px;font-size:15px;font-weight:600;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:14px}
+.btn-pause.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-stop{padding:14px 18px;font-size:15px;font-weight:600;background:var(--card);color:#ef4444;border:1px solid var(--border);border-radius:14px}
+.btn-skip{width:100%;padding:16px;font-size:16px;font-weight:600;background:transparent;color:var(--rest);border:2px solid var(--rest);border-radius:14px}
+
+.countdown-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100}
+.countdown-num{font-size:120px;font-weight:900;color:var(--accent);animation:countPop .4s ease}
+.countdown-label{font-size:16px;color:var(--dim);margin-top:12px}
+
+.done-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;width:100%}
+.done-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 8px;text-align:center}
+.done-card .emoji{font-size:24px;margin-bottom:4px}
+.done-card .check{font-size:11px;font-weight:600;color:var(--green)}
+.done-card .sub{font-size:10px;color:var(--dim);margin-top:2px}
+
+.rest-label{font-size:14px;color:var(--rest);font-weight:700;letter-spacing:.1em}
+.next-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 18px;width:100%;text-align:center}
+.next-box .label{font-size:11px;color:var(--dim);margin-bottom:6px;font-weight:600}
+.next-box .name{font-size:16px;font-weight:700}
+
+.hidden{display:none!important}
+
+@keyframes fadeSlide{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes countPop{from{transform:scale(1.5);opacity:0}to{transform:scale(1);opacity:1}}
+</style>
+</head>
+<body>
+
+<!-- HEADER (always visible) -->
+<div class="header">
+  <div class="header-label">🏠 홈트 15분</div>
+  <div class="header-time" id="totalTime">0:00</div>
+</div>
+<div class="progress-bar hidden" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+
+<!-- ═══ READY ═══ -->
+<div class="screen center" id="readyScreen">
+  <div style="font-size:48px">🔥</div>
+  <div style="font-size:22px;font-weight:700;text-align:center">홈트레이닝 루틴</div>
+  <div style="font-size:13px;color:var(--dim);text-align:center;line-height:1.6">부저음 가이드로 페이스 조절 · 약 15분</div>
+  <div id="readyList" style="width:100%;display:flex;flex-direction:column;gap:10px;margin-top:8px"></div>
+  <div class="info-box" style="margin-top:4px">
+    <div class="label" style="color:var(--accent)">🔊 사운드 가이드 안내</div>
+    <div class="body">낮은 톤 = 내려가기, 높은 톤 = 올라가기. 화면에 동작이 표시됩니다. 세트 안내는 음성으로 나옵니다. 무음 모드를 해제하세요!</div>
+  </div>
+  <button class="btn-primary" style="margin-top:12px" onclick="startWorkout()">운동 시작 ▶</button>
+</div>
+
+<!-- ═══ EXERCISE ═══ -->
+<div class="screen hidden" id="exerciseScreen">
+  <div style="text-align:center">
+    <div id="exEmoji" style="font-size:32px;margin-bottom:2px"></div>
+    <div id="exName" style="font-size:20px;font-weight:700"></div>
+    <div id="exSet" style="font-size:13px;color:var(--accent);font-weight:600;margin-top:4px"></div>
+  </div>
+  <div class="ring-wrap" id="exRing"></div>
+  <div id="cmdBadge" class="hidden"></div>
+  <div class="info-box" id="exTipBox">
+    <div class="label">💡 자세 팁</div>
+    <div class="body" id="exTip"></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn-pause" id="pauseBtn" onclick="togglePause()">⏸ 일시정지</button>
+    <button class="btn-stop" onclick="resetWorkout()">✕ 중단</button>
+  </div>
+</div>
+
+<!-- ═══ REST ═══ -->
+<div class="screen center hidden" id="restScreen">
+  <div class="rest-label">☕ 쉬는 시간</div>
+  <div class="ring-wrap" id="restRing"></div>
+  <div class="next-box">
+    <div class="label">다음</div>
+    <div class="name" id="nextName"></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn-pause" id="restPauseBtn" onclick="togglePause()">⏸ 일시정지</button>
+    <button class="btn-stop" onclick="resetWorkout()">✕ 중단</button>
+  </div>
+</div>
+
+<!-- ═══ DONE ═══ -->
+<div class="screen center hidden" id="doneScreen">
+  <div style="font-size:64px">🎉</div>
+  <div style="font-size:24px;font-weight:800">운동 완료!</div>
+  <div id="doneMsg" style="font-size:14px;color:var(--dim);text-align:center;line-height:1.6"></div>
+  <div class="done-grid" id="doneGrid"></div>
+  <button class="btn-primary" style="margin-top:12px" onclick="resetWorkout()">처음으로 🔄</button>
+</div>
+
+<!-- COUNTDOWN OVERLAY -->
+<div class="countdown-overlay hidden" id="countdownOverlay">
+  <div class="countdown-num" id="countdownNum"></div>
+  <div class="countdown-label">준비하세요</div>
+</div>
+
+<script>
+const EX = [
+  { name:"맨몸 스쿼트", emoji:"🦵", reps:20, sets:4, type:"reps", rest:45,
+    target:"허벅지 근육 강화", tip:"무릎이 발끝을 넘지 않게, 허벅지가 바닥과 평행할 때까지",
+    downTime:2000, upTime:1500, downCmd:"내려가세요", upCmd:"올라가세요" },
+  { name:"무릎 대고 푸쉬업", emoji:"💪", reps:12, sets:4, type:"reps", rest:45,
+    target:"가슴, 팔 근육 강화", tip:"팔꿈치를 45도로 벌리고, 가슴이 바닥에 닿을 듯이",
+    downTime:2000, upTime:1500, downCmd:"내려가세요", upCmd:"올라가세요" },
+  { name:"플랭크", emoji:"🧘", reps:60, sets:3, type:"timed", rest:30,
+    target:"코어 강화", tip:"엉덩이를 너무 올리거나 내리지 말고 일직선 유지" },
+];
+
+const TOTAL_SETS = EX.reduce((a,e)=>a+e.sets,0);
+let cancelled = false, paused = false, totalSec = 0, totalIv = null;
+
+// ─── Utilities ───
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+async function waitPause(){ while(paused && !cancelled) await sleep(100); }
+function fmt(s){ return Math.floor(s/60)+":"+(s%60).toString().padStart(2,"0"); }
+
+function speak(text, rate=1.0){
+  return new Promise(r=>{
+    if(!window.speechSynthesis){r();return}
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang="ko-KR"; u.rate=rate; u.volume=1;
+    u.onend=r; u.onerror=r;
+    speechSynthesis.speak(u);
+  });
+}
+function beep(freq=800,dur=150,vol=.3){
+  try{const c=new(window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator(),g=c.createGain();
+  o.connect(g);g.connect(c.destination);o.frequency.value=freq;g.gain.value=vol;o.start();o.stop(c.currentTime+dur/1000)}catch(e){}
+}
+function vibrate(p=80){try{navigator.vibrate?.(p)}catch(e){}}
+
+// 내려가세요: 낮고 둔탁한 하강 톤 (뚜-둑)
+function toneDown(){
+  try{
+    const c=new(window.AudioContext||window.webkitAudioContext)();
+    const o=c.createOscillator(),g=c.createGain();
+    o.connect(g);g.connect(c.destination);
+    o.type="sine";o.frequency.setValueAtTime(480,c.currentTime);
+    o.frequency.linearRampToValueAtTime(320,c.currentTime+0.15);
+    g.gain.setValueAtTime(0.4,c.currentTime);
+    g.gain.linearRampToValueAtTime(0,c.currentTime+0.2);
+    o.start();o.stop(c.currentTime+0.2);
+  }catch(e){}
+  vibrate(60);
+}
+// 올라가세요: 밝고 경쾌한 상승 톤 (띠-딩)
+function toneUp(){
+  try{
+    const c=new(window.AudioContext||window.webkitAudioContext)();
+    const o=c.createOscillator(),g=c.createGain();
+    o.connect(g);g.connect(c.destination);
+    o.type="sine";o.frequency.setValueAtTime(600,c.currentTime);
+    o.frequency.linearRampToValueAtTime(900,c.currentTime+0.12);
+    g.gain.setValueAtTime(0.35,c.currentTime);
+    g.gain.linearRampToValueAtTime(0,c.currentTime+0.18);
+    o.start();o.stop(c.currentTime+0.18);
+  }catch(e){}
+  vibrate(40);
+}
+// 5회 알림: 짧은 더블 비프
+function toneCount(){
+  beep(700,60,.25); setTimeout(()=>beep(900,80,.3),100);
+}
+
+// ─── SVG Ring ───
+function makeRing(id,size){
+  const sw=10, r=(size-sw)/2, circ=2*Math.PI*r;
+  const wrap=document.getElementById(id);
+  wrap.innerHTML=`
+    <svg width="${size}" height="${size}" style="transform:rotate(-90deg)">
+      <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--border)" stroke-width="${sw}"/>
+      <circle id="${id}Arc" cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--green)"
+        stroke-width="${sw}" stroke-dasharray="${circ}" stroke-dashoffset="${circ}" stroke-linecap="round"
+        style="transition:stroke-dashoffset .4s ease"/>
+    </svg>
+    <div class="ring-center">
+      <div class="ring-big" id="${id}Big">0</div>
+      <div class="ring-sub" id="${id}Sub"></div>
+    </div>`;
+  return { circ, arc: ()=>document.getElementById(id+"Arc"),
+    big: ()=>document.getElementById(id+"Big"), sub: ()=>document.getElementById(id+"Sub") };
+}
+
+function setRing(ring, progress, color){
+  const a=ring.arc(); if(a){a.style.strokeDashoffset=ring.circ*(1-progress);a.setAttribute("stroke",color);}
+}
+
+// ─── Screens ───
+function show(id){
+  ["readyScreen","exerciseScreen","restScreen","doneScreen"].forEach(s=>
+    document.getElementById(s).classList.toggle("hidden",s!==id));
+  document.getElementById("progressBar").classList.toggle("hidden",id==="readyScreen");
+}
+
+function updateProgress(done){
+  document.getElementById("progressFill").style.width=(done/TOTAL_SETS*100)+"%";
+}
+
+// ─── Ready Screen ───
+(function initReady(){
+  const list=document.getElementById("readyList");
+  EX.forEach(e=>{
+    const d=document.createElement("div"); d.className="ex-card";
+    d.innerHTML=`<div class="emoji">${e.emoji}</div><div><div class="name">${e.name}</div>
+      <div class="detail">${e.type==="timed"?e.reps+"초":e.reps+"회"} × ${e.sets}세트 · ${e.target}</div></div>`;
+    list.appendChild(d);
+  });
+})();
+
+// ─── Pause ───
+function togglePause(){
+  paused=!paused;
+  document.getElementById("pauseBtn").textContent=paused?"▶ 계속":"⏸ 일시정지";
+  document.getElementById("pauseBtn").classList.toggle("active",paused);
+  document.getElementById("restPauseBtn").textContent=paused?"▶ 계속":"⏸ 일시정지";
+  document.getElementById("restPauseBtn").classList.toggle("active",paused);
+}
+
+// ─── Total Timer ───
+function startTotal(){
+  totalSec=0; totalIv=setInterval(()=>{
+    if(!paused) totalSec++;
+    document.getElementById("totalTime").textContent=fmt(totalSec);
+  },1000);
+}
+function stopTotal(){ clearInterval(totalIv); }
+
+// ─── Countdown ───
+async function countdown321(){
+  const ov=document.getElementById("countdownOverlay");
+  const num=document.getElementById("countdownNum");
+  ov.classList.remove("hidden");
+  for(let t=3;t>0;t--){
+    if(cancelled){ov.classList.add("hidden");return}
+    num.textContent=t; num.style.animation="none"; void num.offsetWidth; num.style.animation="countPop .4s ease";
+    beep(600+(3-t)*200,100,.3);
+    await sleep(1000);
+  }
+  ov.classList.add("hidden");
+  beep(1000,200,.4);
+}
+
+// ─── Rep Exercise ───
+async function runReps(ex, ring){
+  for(let i=1;i<=ex.reps;i++){
+    if(cancelled) return;
+    await waitPause(); if(cancelled) return;
+
+    // DOWN
+    setRing(ring,(i-.5)/ex.reps,"var(--blue)");
+    ring.big().textContent=i-1; ring.big().style.color="var(--blue)";
+    const badge=document.getElementById("cmdBadge");
+    badge.className="cmd-badge cmd-down"; badge.textContent="⬇ 내려가세요"; badge.classList.remove("hidden");
+    badge.style.animation="none"; void badge.offsetWidth; badge.style.animation="fadeSlide .3s ease";
+    toneDown();
+
+    await sleep(ex.downTime);
+    if(cancelled) return; await waitPause(); if(cancelled) return;
+
+    // UP
+    setRing(ring,i/ex.reps,"var(--green)");
+    ring.big().textContent=i; ring.big().style.color="var(--green)";
+    badge.className="cmd-badge cmd-up"; badge.textContent="⬆ 올라가세요";
+    badge.style.animation="none"; void badge.offsetWidth; badge.style.animation="fadeSlide .3s ease";
+    toneUp();
+
+    if(i%5===0||i===ex.reps) setTimeout(()=>{if(!cancelled)toneCount()},500);
+
+    await sleep(ex.upTime);
+    if(cancelled) return; await waitPause();
+  }
+  document.getElementById("cmdBadge").classList.add("hidden");
+}
+
+// ─── Timed Exercise ───
+async function runTimed(ex, ring){
+  speak("시작",1.0);
+  for(let t=ex.reps;t>0;t--){
+    if(cancelled) return;
+    await waitPause(); if(cancelled) return;
+    ring.big().textContent=t; ring.big().style.color="var(--blue)";
+    ring.sub().textContent="초 남음";
+    setRing(ring,1-t/ex.reps,"var(--blue)");
+
+    if(t===Math.floor(ex.reps/2)) speak("절반 지났습니다. 힘내세요!",1.0);
+    else if(t===10) speak("10초 남았습니다!",1.0);
+    else if(t<=3) beep(600,80,.2);
+    await sleep(1000);
+  }
+  if(!cancelled){beep(1000,300,.4);vibrate([100,50,100]);}
+}
+
+// ─── Rest ───
+async function runRest(dur, ring){
+  speak("쉬세요",1.0);
+  for(let t=dur;t>0;t--){
+    if(cancelled) return;
+    await waitPause(); if(cancelled) return;
+    ring.big().textContent=t;
+    setRing(ring,1-t/dur,"var(--rest)");
+    if(t===5) speak("5초 뒤 시작합니다",1.0);
+    else if(t<=3) beep(500,60,.15);
+    await sleep(1000);
+  }
+  if(!cancelled){beep(1000,100,.4);setTimeout(()=>beep(1200,200,.5),150);vibrate([100,50,100]);}
+}
+
+// ─── Main Loop ───
+async function startWorkout(){
+  cancelled=false; paused=false;
+  // Init audio with user gesture
+  try{const c=new(window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator(),g=c.createGain();
+    o.connect(g);g.connect(c.destination);g.gain.value=.01;o.start();o.stop(c.currentTime+.01)}catch(e){}
+  await speak("준비",1.0);
+  startTotal();
+
+  const exRing = makeRing("exRing",220);
+  const restRingObj = makeRing("restRing",220);
+
+  let completedSets=0;
+
+  for(let ei=0;ei<EX.length;ei++){
+    const ex=EX[ei];
+    for(let si=1;si<=ex.sets;si++){
+      if(cancelled) return;
+
+      // Show exercise screen
+      show("exerciseScreen");
+      document.getElementById("exEmoji").textContent=ex.emoji;
+      document.getElementById("exName").textContent=ex.name;
+      document.getElementById("exSet").textContent=`세트 ${si} / ${ex.sets}`;
+      document.getElementById("exTip").textContent=ex.tip;
+      document.getElementById("cmdBadge").classList.add("hidden");
+
+      setRing(exRing,0,"var(--green)");
+      exRing.big().textContent="0";
+      exRing.sub().textContent=ex.type==="timed"?"초 남음":`/ ${ex.reps}회`;
+
+      updateProgress(completedSets);
+
+      await speak(`${ex.name}, ${si}세트 시작합니다`,1.0);
+      await countdown321();
+      if(cancelled) return;
+
+      if(ex.type==="reps") await runReps(ex,exRing);
+      else await runTimed(ex,exRing);
+      if(cancelled) return;
+
+      completedSets++;
+      updateProgress(completedSets);
+
+      const lastSet=si>=ex.sets, lastEx=ei>=EX.length-1;
+      if(lastSet&&lastEx){
+        await speak("운동 완료! 수고했습니다!",1.0);
+        showDone(); return;
+      }
+
+      // Rest
+      const restDur=lastSet?60:ex.rest;
+      show("restScreen");
+      setRing(restRingObj,0,"var(--rest)");
+      restRingObj.big().textContent=restDur;
+      restRingObj.sub().textContent="초";
+
+      if(lastSet){
+        document.getElementById("nextName").textContent=`${EX[ei+1].emoji} ${EX[ei+1].name} · 세트 1`;
+        await speak(`${EX[ei+1].name}으로 넘어갑니다. ${restDur}초 쉬세요`,1.0);
+      } else {
+        document.getElementById("nextName").textContent=`${ex.emoji} ${ex.name} · 세트 ${si+1}`;
+        await speak(`${si}세트 완료. ${restDur}초 쉬세요`,1.0);
+      }
+
+      await runRest(restDur, restRingObj);
+    }
+  }
+}
+
+function showDone(){
+  stopTotal();
+  show("doneScreen");
+  document.getElementById("doneMsg").innerHTML=`총 소요 시간: ${fmt(totalSec)}<br>이제 러닝 나가자! 🏃‍♂️`;
+  const grid=document.getElementById("doneGrid"); grid.innerHTML="";
+  EX.forEach(e=>{
+    const d=document.createElement("div"); d.className="done-card";
+    d.innerHTML=`<div class="emoji">${e.emoji}</div><div class="check">✓ 완료</div>
+      <div class="sub">${e.type==="timed"?e.reps+"초":e.reps+"회"} × ${e.sets}세트</div>`;
+    grid.appendChild(d);
+  });
+  document.getElementById("totalTime").style.color="var(--green)";
+}
+
+function resetWorkout(){
+  cancelled=true; paused=false;
+  speechSynthesis?.cancel(); stopTotal();
+  totalSec=0;
+  document.getElementById("totalTime").textContent="0:00";
+  document.getElementById("totalTime").style.color="var(--dim)";
+  document.getElementById("countdownOverlay").classList.add("hidden");
+  document.getElementById("pauseBtn").textContent="⏸ 일시정지";
+  document.getElementById("pauseBtn").classList.remove("active");
+  show("readyScreen");
+}
+</script>
+</body>
+</html>

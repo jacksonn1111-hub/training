@@ -10,71 +10,51 @@
 <title>홈트 15분</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
-:root{
-  --bg:#0a0a0f;--card:#14141f;--accent:#ff6b35;--green:#22c55e;--blue:#3b82f6;
-  --text:#f0f0f5;--dim:#6b6b80;--border:#1e1e2e;--rest:#a855f7;
-}
-body{
-  background:var(--bg);color:var(--text);
-  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;
-  min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;
-  align-items:center;overflow-x:hidden;
-  padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
-}
+:root{--bg:#0a0a0f;--card:#14141f;--accent:#ff6b35;--green:#22c55e;--blue:#3b82f6;--text:#f0f0f5;--dim:#6b6b80;--border:#1e1e2e;--rest:#a855f7}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;overflow-x:hidden;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
 button{font-family:inherit;cursor:pointer;border:none;outline:none;transition:transform .1s}
 button:active{transform:scale(.96)}
-
 .header{width:100%;max-width:420px;padding:16px 20px 8px;display:flex;justify-content:space-between;align-items:center}
 .header-label{font-size:13px;color:var(--dim)}
 .header-time{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--dim)}
-
 .progress-bar{width:calc(100% - 40px);max-width:400px;height:4px;background:var(--border);border-radius:2px;margin:4px 0 12px;overflow:hidden}
 .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:2px;transition:width .5s ease}
-
 .screen{flex:1;display:none;flex-direction:column;align-items:center;padding:12px 20px 24px;max-width:420px;width:100%;gap:12px}
 .screen.center{justify-content:center;gap:20px}
 .screen.active{display:flex}
-
 .ex-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:14px;width:100%}
 .ex-card .emoji{font-size:28px;flex-shrink:0}
 .ex-card .name{font-size:15px;font-weight:600}
 .ex-card .detail{font-size:12px;color:var(--dim);margin-top:2px}
-
 .info-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 16px;width:100%}
 .info-box .label{font-size:11px;color:var(--dim);font-weight:600;margin-bottom:4px}
 .info-box .body{font-size:12px;line-height:1.6;color:var(--text)}
-
 .ring-wrap{position:relative;flex-shrink:0}
 .ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .ring-big{font-size:52px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
 .ring-sub{font-size:13px;color:var(--dim);margin-top:4px}
-
 .cmd-badge{font-size:24px;font-weight:800;letter-spacing:.05em;padding:14px 36px;border-radius:24px;animation:fadeSlide .3s ease}
 .cmd-down{color:var(--blue);background:rgba(59,130,246,.2);border:2px solid rgba(59,130,246,.3)}
 .cmd-up{color:var(--green);background:rgba(34,197,94,.2);border:2px solid rgba(34,197,94,.3)}
-
+.cmd-hold{color:var(--blue);background:rgba(59,130,246,.15);font-size:16px;font-weight:600;padding:8px 20px;border-radius:20px}
 .btn-row{display:flex;gap:12px;width:100%;margin-top:auto;padding-top:8px}
 .btn-primary{width:100%;padding:18px;font-size:18px;font-weight:700;background:linear-gradient(135deg,var(--accent),#ff8c5a);color:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(255,107,53,.3)}
 .btn-pause{flex:1;padding:14px;font-size:15px;font-weight:600;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:14px}
 .btn-pause.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 .btn-stop{padding:14px 18px;font-size:15px;font-weight:600;background:var(--card);color:#ef4444;border:1px solid var(--border);border-radius:14px}
-
 .countdown-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:100}
 .countdown-overlay.active{display:flex}
 .countdown-num{font-size:120px;font-weight:900;color:var(--accent);animation:countPop .4s ease}
 .countdown-label{font-size:16px;color:var(--dim);margin-top:12px}
-
 .done-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;width:100%}
 .done-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 8px;text-align:center}
 .done-card .emoji{font-size:24px;margin-bottom:4px}
 .done-card .check{font-size:11px;font-weight:600;color:var(--green)}
 .done-card .sub{font-size:10px;color:var(--dim);margin-top:2px}
-
 .rest-label{font-size:14px;color:var(--rest);font-weight:700;letter-spacing:.1em}
 .next-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 18px;width:100%;text-align:center}
 .next-box .label{font-size:11px;color:var(--dim);margin-bottom:6px;font-weight:600}
 .next-box .name{font-size:16px;font-weight:700}
-
 @keyframes fadeSlide{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes countPop{from{transform:scale(1.5);opacity:0}to{transform:scale(1);opacity:1}}
 </style>
@@ -91,11 +71,11 @@ button:active{transform:scale(.96)}
 <div class="screen center active" id="readyScreen">
   <div style="font-size:48px">🔥</div>
   <div style="font-size:22px;font-weight:700;text-align:center">홈트레이닝 루틴</div>
-  <div style="font-size:13px;color:var(--dim);text-align:center;line-height:1.6">부저음 가이드로 페이스 조절 · 약 15분</div>
+  <div style="font-size:13px;color:var(--dim);text-align:center;line-height:1.6">부저음 가이드 · 약 12분</div>
   <div id="readyList" style="width:100%;display:flex;flex-direction:column;gap:10px;margin-top:8px"></div>
   <div class="info-box" style="margin-top:4px">
-    <div class="label" style="color:var(--accent)">🔊 사운드 가이드 안내</div>
-    <div class="body">낮은 톤 = 내려가기, 높은 톤 = 올라가기. 화면에 동작이 표시됩니다. 세트 안내는 음성으로 나옵니다. 무음 모드를 해제하세요!</div>
+    <div class="label" style="color:var(--accent)">🔊 사운드 가이드</div>
+    <div class="body">낮은 톤 = 내려가기, 높은 톤 = 올라가기. 화면에 동작이 표시됩니다. 세트 안내는 음성으로 나옵니다. 운동 중 화면이 꺼지지 않습니다.</div>
   </div>
   <button class="btn-primary" style="margin-top:12px" onclick="startWorkout()">운동 시작 ▶</button>
 </div>
@@ -149,461 +129,378 @@ button:active{transform:scale(.96)}
 </div>
 
 <script>
-// ═══════════════════════════════════════════
-// DATA
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════
+// DATA — 체력에 맞게 조정된 루틴
+// ═══════════════════════════════════
 const EX = [
-  { name:"맨몸 스쿼트", emoji:"🦵", reps:20, sets:4, type:"reps", rest:45,
+  { name:"맨몸 스쿼트", emoji:"🦵", reps:15, sets:3, type:"reps", rest:60,
     target:"허벅지 근육 강화", tip:"무릎이 발끝을 넘지 않게, 허벅지가 바닥과 평행할 때까지",
-    downMs:2000, upMs:1500 },
-  { name:"무릎 대고 푸쉬업", emoji:"💪", reps:12, sets:4, type:"reps", rest:45,
+    downMs:2500, upMs:2000 },
+  { name:"무릎 대고 푸쉬업", emoji:"💪", reps:8, sets:3, type:"reps", rest:60,
     target:"가슴, 팔 근육 강화", tip:"팔꿈치를 45도로 벌리고, 가슴이 바닥에 닿을 듯이",
-    downMs:2000, upMs:1500 },
-  { name:"플랭크", emoji:"🧘", reps:60, sets:3, type:"timed", rest:30,
+    downMs:2500, upMs:2000 },
+  { name:"플랭크", emoji:"🧘", reps:30, sets:3, type:"timed", rest:45,
     target:"코어 강화", tip:"엉덩이를 너무 올리거나 내리지 말고 일직선 유지" },
 ];
 const TOTAL_SETS = EX.reduce((a,e)=>a+e.sets, 0);
 
-// ═══════════════════════════════════════════
-// STATE — sessionId prevents duplicate loops
-// ═══════════════════════════════════════════
-let sessionId = 0;       // incremented on every start/reset
+// ═══════════════════════════════════
+// STATE
+// ═══════════════════════════════════
+let sessionId = 0;
 let paused = false;
 let totalSec = 0;
 let totalIv = null;
 
-function isAlive(myId){ return myId === sessionId; }
+function isAlive(id){ return id === sessionId; }
 
-// ═══════════════════════════════════════════
-// AUDIO — iOS-compatible with silent keepalive loop
-// ═══════════════════════════════════════════
-let audioCtx = null;
-let keepAliveNode = null;
+// ═══════════════════════════════════
+// WAKE LOCK — 화면 꺼짐 방지
+// ═══════════════════════════════════
+let wakeLock = null;
+let noSleepVideo = null;
 
-// Call this SYNCHRONOUSLY inside a user tap handler
-function unlockAudio(){
-  if(!audioCtx){
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+async function requestWakeLock(){
+  // 1) Wake Lock API (iOS 16.4+)
+  if('wakeLock' in navigator){
+    try{
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', ()=>{ wakeLock = null; });
+      return;
+    }catch(e){}
   }
-  if(audioCtx.state === "suspended") audioCtx.resume();
-
-  // Start a silent looping buffer — keeps iOS from suspending AudioContext
-  if(!keepAliveNode){
-    const buf = audioCtx.createBuffer(1, audioCtx.sampleRate, audioCtx.sampleRate);
-    // Fill with near-silence (true silence can be optimized away by iOS)
-    const data = buf.getChannelData(0);
-    for(let i=0; i<data.length; i++) data[i] = 0.00001;
-    keepAliveNode = audioCtx.createBufferSource();
-    keepAliveNode.buffer = buf;
-    keepAliveNode.loop = true;
-    const silentGain = audioCtx.createGain();
-    silentGain.gain.value = 0.001;
-    keepAliveNode.connect(silentGain);
-    silentGain.connect(audioCtx.destination);
-    keepAliveNode.start();
+  // 2) Fallback: silent video loop (older iOS)
+  if(!noSleepVideo){
+    noSleepVideo = document.createElement('video');
+    noSleepVideo.setAttribute('playsinline','');
+    noSleepVideo.setAttribute('webkit-playsinline','');
+    noSleepVideo.style.cssText='position:fixed;top:-1px;left:-1px;width:1px;height:1px;opacity:0.01';
+    noSleepVideo.src='data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAu1tZGF0AAACrgYF//+q3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE1MiByMjg1NCBlOWE1OTAzIC0gSC4yNjQvTVBFRy00IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAxNyAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub3JnL3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTEgcmVmPTMgZGVibG9jaz0xOjA6MCBhbmFseXNlPTB4MzoweDExMyBtZT1oZXggc3VibWU9NyBwc3k9MSBwc3lfcmQ9MS4wMDowLjAwIG1peGVkX3JlZj0xIG1lX3JhbmdlPTE2IGNocm9tYV9tZT0xIHRyZWxsaXM9MSA4eDhkY3Q9MSBjcW09MCBkZWFkem9uZT0yMSwxMSBmYXN0X3Bza2lwPTEgY2hyb21hX3FwX29mZnNldD0tMiB0aHJlYWRzPTEgbG9va2FoZWFkX3RocmVhZHM9MSBzbGljZWRfdGhyZWFkcz0wIG5yPTAgZGVjaW1hdGU9MSBpbnRlcmxhY2VkPTAgYmx1cmF5X2NvbXBhdD0wIGNvbnN0cmFpbmVkX2ludHJhPTAgYmZyYW1lcz0zIGJfcHlyYW1pZD0yIGJfYWRhcHQ9MSBiX2JpYXM9MCBkaXJlY3Q9MSB3ZWlnaHRiPTEgb3Blbl9nb3A9MSB3ZWlnaHRwPTIga2V5aW50PTI1MCBrZXlpbnRfbWluPTI1IHNjZW5lY3V0PTQwIGludHJhX3JlZnJlc2g9MCByY19sb29rYWhlYWQ9NDAgcmM9Y3JmIG1idHJlZT0xIGNyZj0yMy4wIHFjb21wPTAuNjAgcXBtaW49MCBxcG1heD02OSBxcHN0ZXA9NCBpcF9yYXRpbz0xLjQwIGFxPTE6MS4wMACAAAAAbWWIhAAz//727L4FNf2f0JcRLMXaSnA+KqSAgHc0wAAAAwAAAwAAFgn0IAAnUAAAAwAAHiEcAAAAXBYAIcAAAAMAAAMAAAMAAAMANBAAAAMAAAMAAAMAAAMAAAMAVOAAAAMAAAMAAAMAAAMAAAMB4AAAAAH0pkbi6wdk';
+    noSleepVideo.loop=true;
+    document.body.appendChild(noSleepVideo);
   }
-
-  // Play a real (audible) short blip to fully unlock
-  const o = audioCtx.createOscillator();
-  const g = audioCtx.createGain();
-  o.connect(g); g.connect(audioCtx.destination);
-  o.frequency.value = 440;
-  g.gain.setValueAtTime(0.15, audioCtx.currentTime);
-  g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.08);
-  o.start(); o.stop(audioCtx.currentTime + 0.08);
+  try{ await noSleepVideo.play(); }catch(e){}
 }
 
-function playTone(startFreq, endFreq, duration, volume){
+function releaseWakeLock(){
+  if(wakeLock){ try{wakeLock.release()}catch(e){} wakeLock=null; }
+  if(noSleepVideo){ try{noSleepVideo.pause()}catch(e){} }
+}
+
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible' && totalIv) requestWakeLock();
+});
+
+// ═══════════════════════════════════
+// AUDIO — iOS 호환 (keepalive loop)
+// ═══════════════════════════════════
+let audioCtx = null;
+let keepAlive = null;
+
+function unlockAudio(){
+  if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==='suspended') audioCtx.resume();
+
+  if(!keepAlive){
+    const buf = audioCtx.createBuffer(1, audioCtx.sampleRate, audioCtx.sampleRate);
+    const d = buf.getChannelData(0);
+    for(let i=0;i<d.length;i++) d[i]=0.00001;
+    keepAlive = audioCtx.createBufferSource();
+    keepAlive.buffer = buf;
+    keepAlive.loop = true;
+    const g = audioCtx.createGain();
+    g.gain.value = 0.001;
+    keepAlive.connect(g);
+    g.connect(audioCtx.destination);
+    keepAlive.start();
+  }
+
+  // Audible blip to fully unlock
+  const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.connect(g); g.connect(audioCtx.destination);
+  o.frequency.value=440;
+  g.gain.setValueAtTime(0.15, audioCtx.currentTime);
+  g.gain.linearRampToValueAtTime(0, audioCtx.currentTime+0.08);
+  o.start(); o.stop(audioCtx.currentTime+0.08);
+}
+
+function playTone(f1,f2,dur,vol){
   if(!audioCtx) return;
   try{
-    const o = audioCtx.createOscillator();
-    const g = audioCtx.createGain();
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
     o.connect(g); g.connect(audioCtx.destination);
-    o.type = "sine";
-    o.frequency.setValueAtTime(startFreq, audioCtx.currentTime);
-    o.frequency.linearRampToValueAtTime(endFreq, audioCtx.currentTime + duration);
-    g.gain.setValueAtTime(volume, audioCtx.currentTime);
-    g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + duration);
+    o.type='sine';
+    o.frequency.setValueAtTime(f1, audioCtx.currentTime);
+    o.frequency.linearRampToValueAtTime(f2, audioCtx.currentTime+dur);
+    g.gain.setValueAtTime(vol, audioCtx.currentTime);
+    g.gain.linearRampToValueAtTime(0, audioCtx.currentTime+dur);
     o.start(audioCtx.currentTime);
-    o.stop(audioCtx.currentTime + duration);
+    o.stop(audioCtx.currentTime+dur);
   }catch(e){}
 }
 
-// 내려가기: 낮고 둔탁한 하강 톤
-function toneDown(){
-  playTone(480, 300, 0.2, 0.5);
-  try{ navigator.vibrate?.(60); }catch(e){}
-}
-// 올라가기: 밝고 경쾌한 상승 톤
-function toneUp(){
-  playTone(600, 950, 0.15, 0.45);
-  try{ navigator.vibrate?.(40); }catch(e){}
-}
-// 5회 알림: 더블 비프
-function toneCount(){
-  playTone(700, 700, 0.06, 0.3);
-  setTimeout(()=> playTone(950, 950, 0.08, 0.35), 100);
-}
-// 일반 비프
-function beep(freq, dur, vol){
-  playTone(freq, freq, dur/1000, vol);
-}
-// 완료 사운드
-function toneComplete(){
-  playTone(800, 800, 0.1, 0.35);
-  setTimeout(()=> playTone(1000, 1000, 0.1, 0.35), 120);
-  setTimeout(()=> playTone(1300, 1300, 0.2, 0.45), 250);
-  try{ navigator.vibrate?.([80,40,80,40,150]); }catch(e){}
-}
+function toneDown(){ playTone(480,300,0.2,0.5); try{navigator.vibrate?.(60)}catch(e){} }
+function toneUp(){ playTone(600,950,0.15,0.45); try{navigator.vibrate?.(40)}catch(e){} }
+function toneCount(){ playTone(700,700,0.06,0.3); setTimeout(()=>playTone(950,950,0.08,0.35),100); }
+function beep(f,d,v){ playTone(f,f,d/1000,v); }
+function toneDone(){ playTone(800,800,0.1,0.35); setTimeout(()=>playTone(1000,1000,0.1,0.35),120); setTimeout(()=>playTone(1300,1300,0.2,0.45),250); try{navigator.vibrate?.([80,40,80,40,150])}catch(e){} }
 
-// ═══════════════════════════════════════════
-// TTS — only for set announcements
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════
+// TTS
+// ═══════════════════════════════════
 function speak(text, rate){
   return new Promise(resolve=>{
-    if(!window.speechSynthesis){ resolve(); return; }
+    if(!window.speechSynthesis){resolve();return}
     speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = "ko-KR";
-    u.rate = rate || 1.0;
-    u.volume = 1;
-    u.onend = resolve;
-    u.onerror = resolve;
-    // iOS safety: onend sometimes doesn't fire
-    const fallback = setTimeout(resolve, Math.max(3000, text.length * 200));
-    u.onend = ()=>{ clearTimeout(fallback); resolve(); };
-    u.onerror = ()=>{ clearTimeout(fallback); resolve(); };
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='ko-KR'; u.rate=rate||1; u.volume=1;
+    const fb=setTimeout(resolve, Math.max(3000, text.length*200));
+    u.onend=()=>{clearTimeout(fb);resolve()};
+    u.onerror=()=>{clearTimeout(fb);resolve()};
     speechSynthesis.speak(u);
   });
 }
 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════
 // HELPERS
-// ═══════════════════════════════════════════
-function sleep(ms){ return new Promise(r=> setTimeout(r, ms)); }
-async function waitPause(myId){
-  while(paused && isAlive(myId)) await sleep(80);
-}
-function fmt(s){
-  return Math.floor(s/60) + ":" + (s%60).toString().padStart(2,"0");
-}
+// ═══════════════════════════════════
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+async function waitP(id){while(paused&&isAlive(id))await sleep(80)}
+function fmt(s){return Math.floor(s/60)+':'+(s%60).toString().padStart(2,'0')}
 
-// ─── Ring ───
-function makeRing(id, size){
-  const sw=10, r=(size-sw)/2, circ=2*Math.PI*r;
-  const el = document.getElementById(id);
-  el.innerHTML = `
-    <svg width="${size}" height="${size}" style="transform:rotate(-90deg)">
-      <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--border)" stroke-width="${sw}"/>
-      <circle id="${id}Arc" cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--green)"
-        stroke-width="${sw}" stroke-dasharray="${circ}" stroke-dashoffset="${circ}" stroke-linecap="round"
+function makeRing(id,sz){
+  const sw=10,r=(sz-sw)/2,c=2*Math.PI*r;
+  document.getElementById(id).innerHTML=`
+    <svg width="${sz}" height="${sz}" style="transform:rotate(-90deg)">
+      <circle cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="var(--border)" stroke-width="${sw}"/>
+      <circle id="${id}A" cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="var(--green)"
+        stroke-width="${sw}" stroke-dasharray="${c}" stroke-dashoffset="${c}" stroke-linecap="round"
         style="transition:stroke-dashoffset .4s ease"/>
     </svg>
-    <div class="ring-center">
-      <div class="ring-big" id="${id}Big">0</div>
-      <div class="ring-sub" id="${id}Sub"></div>
-    </div>`;
-  return {
-    circ,
-    arc(){ return document.getElementById(id+"Arc"); },
-    big(){ return document.getElementById(id+"Big"); },
-    sub(){ return document.getElementById(id+"Sub"); },
-    set(progress, color){
-      const a = this.arc();
-      if(a){ a.style.strokeDashoffset = this.circ*(1-progress); a.setAttribute("stroke", color); }
-    }
-  };
+    <div class="ring-center"><div class="ring-big" id="${id}B">0</div><div class="ring-sub" id="${id}S"></div></div>`;
+  return{c, a:()=>document.getElementById(id+'A'), b:()=>document.getElementById(id+'B'), s:()=>document.getElementById(id+'S'),
+    set(p,col){const a=this.a();if(a){a.style.strokeDashoffset=this.c*(1-p);a.setAttribute('stroke',col)}}};
 }
 
-// ─── Screen switching ───
 function showScreen(id){
-  ["readyScreen","exerciseScreen","restScreen","doneScreen"].forEach(s=>{
-    document.getElementById(s).classList.toggle("active", s===id);
-  });
-  document.getElementById("progressBar").style.display = (id==="readyScreen") ? "none" : "";
+  ['readyScreen','exerciseScreen','restScreen','doneScreen'].forEach(s=>
+    document.getElementById(s).classList.toggle('active',s===id));
+  document.getElementById('progressBar').style.display=id==='readyScreen'?'none':'';
 }
+function updateProg(n){document.getElementById('progressFill').style.width=(n/TOTAL_SETS*100)+'%'}
 
-function updateProgress(done){
-  document.getElementById("progressFill").style.width = (done/TOTAL_SETS*100)+"%";
-}
-
-// ═══════════════════════════════════════════
-// INIT READY LIST
-// ═══════════════════════════════════════════
+// Init ready list
 (function(){
-  const list = document.getElementById("readyList");
-  EX.forEach(e=>{
-    const d = document.createElement("div");
-    d.className = "ex-card";
-    d.innerHTML = `<div class="emoji">${e.emoji}</div><div><div class="name">${e.name}</div>
-      <div class="detail">${e.type==="timed"?e.reps+"초":e.reps+"회"} × ${e.sets}세트 · ${e.target}</div></div>`;
-    list.appendChild(d);
-  });
+  const l=document.getElementById('readyList');
+  EX.forEach(e=>{const d=document.createElement('div');d.className='ex-card';
+    d.innerHTML=`<div class="emoji">${e.emoji}</div><div><div class="name">${e.name}</div>
+    <div class="detail">${e.type==='timed'?e.reps+'초':e.reps+'회'} × ${e.sets}세트 · ${e.target}</div></div>`;
+    l.appendChild(d)});
 })();
 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════
 // PAUSE
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════
 function togglePause(){
-  paused = !paused;
-  const label = paused ? "▶ 계속" : "⏸ 일시정지";
-  document.getElementById("pauseBtn").textContent = label;
-  document.getElementById("pauseBtn").classList.toggle("active", paused);
-  document.getElementById("restPauseBtn").textContent = label;
-  document.getElementById("restPauseBtn").classList.toggle("active", paused);
+  paused=!paused;
+  const lb=paused?'▶ 계속':'⏸ 일시정지';
+  ['pauseBtn','restPauseBtn'].forEach(id=>{
+    const b=document.getElementById(id); b.textContent=lb; b.classList.toggle('active',paused);
+  });
 }
 
-// ═══════════════════════════════════════════
-// TOTAL TIMER
-// ═══════════════════════════════════════════
-function startTotal(){
-  stopTotal();
-  totalSec = 0;
-  totalIv = setInterval(()=>{
-    if(!paused) totalSec++;
-    document.getElementById("totalTime").textContent = fmt(totalSec);
-  }, 1000);
-}
-function stopTotal(){ if(totalIv){ clearInterval(totalIv); totalIv=null; } }
+// ═══════════════════════════════════
+// TIMER
+// ═══════════════════════════════════
+function startTotal(){stopTotal();totalSec=0;totalIv=setInterval(()=>{if(!paused)totalSec++;document.getElementById('totalTime').textContent=fmt(totalSec)},1000)}
+function stopTotal(){if(totalIv){clearInterval(totalIv);totalIv=null}}
 
-// ═══════════════════════════════════════════
-// COUNTDOWN 3-2-1
-// ═══════════════════════════════════════════
-async function countdown321(myId){
-  const ov = document.getElementById("countdownOverlay");
-  const num = document.getElementById("countdownNum");
-  ov.classList.add("active");
-  for(let t=3; t>0; t--){
-    if(!isAlive(myId)){ ov.classList.remove("active"); return; }
-    num.textContent = t;
-    num.style.animation = "none"; void num.offsetWidth; num.style.animation = "countPop .4s ease";
-    beep(600+(3-t)*200, 100, 0.35);
+// ═══════════════════════════════════
+// COUNTDOWN
+// ═══════════════════════════════════
+async function countdown(myId){
+  const ov=document.getElementById('countdownOverlay'),num=document.getElementById('countdownNum');
+  ov.classList.add('active');
+  for(let t=3;t>0;t--){
+    if(!isAlive(myId)){ov.classList.remove('active');return}
+    num.textContent=t;num.style.animation='none';void num.offsetWidth;num.style.animation='countPop .4s ease';
+    beep(600+(3-t)*200,100,0.35);
     await sleep(1000);
   }
-  ov.classList.remove("active");
-  beep(1000, 200, 0.45);
+  ov.classList.remove('active');
+  beep(1000,200,0.45);
 }
 
-// ═══════════════════════════════════════════
-// REP EXERCISE (squat / push-up)
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════
+// REP EXERCISE
+// ═══════════════════════════════════
 async function runReps(myId, ex, ring){
-  const badge = document.getElementById("cmdBadge");
+  const badge=document.getElementById('cmdBadge');
+  for(let i=1;i<=ex.reps;i++){
+    if(!isAlive(myId))return;
+    await waitP(myId); if(!isAlive(myId))return;
 
-  for(let i=1; i<=ex.reps; i++){
-    if(!isAlive(myId)) return;
-    await waitPause(myId);
-    if(!isAlive(myId)) return;
-
-    // ▼ DOWN
-    ring.set((i-0.5)/ex.reps, "var(--blue)");
-    ring.big().textContent = i-1;
-    ring.big().style.color = "var(--blue)";
-    badge.style.display = "";
-    badge.className = "cmd-badge cmd-down";
-    badge.textContent = "⬇ 내려가세요";
-    badge.style.animation = "none"; void badge.offsetWidth; badge.style.animation = "fadeSlide .3s ease";
+    ring.set((i-.5)/ex.reps,'var(--blue)');
+    ring.b().textContent=i-1; ring.b().style.color='var(--blue)';
+    badge.style.display='';
+    badge.className='cmd-badge cmd-down'; badge.textContent='⬇ 내려가세요';
+    badge.style.animation='none'; void badge.offsetWidth; badge.style.animation='fadeSlide .3s ease';
     toneDown();
 
     await sleep(ex.downMs);
-    if(!isAlive(myId)) return;
-    await waitPause(myId);
-    if(!isAlive(myId)) return;
+    if(!isAlive(myId))return; await waitP(myId); if(!isAlive(myId))return;
 
-    // ▲ UP
-    ring.set(i/ex.reps, "var(--green)");
-    ring.big().textContent = i;
-    ring.big().style.color = "var(--green)";
-    badge.className = "cmd-badge cmd-up";
-    badge.textContent = "⬆ 올라가세요";
-    badge.style.animation = "none"; void badge.offsetWidth; badge.style.animation = "fadeSlide .3s ease";
+    ring.set(i/ex.reps,'var(--green)');
+    ring.b().textContent=i; ring.b().style.color='var(--green)';
+    badge.className='cmd-badge cmd-up'; badge.textContent='⬆ 올라가세요';
+    badge.style.animation='none'; void badge.offsetWidth; badge.style.animation='fadeSlide .3s ease';
     toneUp();
 
-    // 5회마다 더블 비프
-    if(i % 5 === 0 || i === ex.reps){
-      setTimeout(()=>{ if(isAlive(myId)) toneCount(); }, 500);
-    }
+    if(i%5===0||i===ex.reps) setTimeout(()=>{if(isAlive(myId))toneCount()},500);
 
     await sleep(ex.upMs);
-    if(!isAlive(myId)) return;
-    await waitPause(myId);
+    if(!isAlive(myId))return; await waitP(myId);
   }
-  badge.style.display = "none";
+  badge.style.display='none';
 }
 
-// ═══════════════════════════════════════════
-// TIMED EXERCISE (plank)
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════
+// TIMED EXERCISE
+// ═══════════════════════════════════
 async function runTimed(myId, ex, ring){
-  speak("시작", 1.0);
-  for(let t=ex.reps; t>0; t--){
-    if(!isAlive(myId)) return;
-    await waitPause(myId);
-    if(!isAlive(myId)) return;
-
-    ring.big().textContent = t;
-    ring.big().style.color = "var(--blue)";
-    ring.sub().textContent = "초 남음";
-    ring.set(1 - t/ex.reps, "var(--blue)");
-
-    if(t === Math.floor(ex.reps/2)) speak("절반 지났습니다. 힘내세요!", 1.0);
-    else if(t === 10) speak("10초 남았습니다!", 1.0);
-    else if(t <= 3) beep(600, 80, 0.25);
-
+  speak('시작',1);
+  for(let t=ex.reps;t>0;t--){
+    if(!isAlive(myId))return;
+    await waitP(myId); if(!isAlive(myId))return;
+    ring.b().textContent=t; ring.b().style.color='var(--blue)';
+    ring.s().textContent='초 남음';
+    ring.set(1-t/ex.reps,'var(--blue)');
+    if(t===Math.floor(ex.reps/2)) speak('절반 지났습니다. 힘내세요!',1);
+    else if(t===10) speak('10초 남았습니다!',1);
+    else if(t<=3) beep(600,80,0.25);
     await sleep(1000);
   }
-  if(isAlive(myId)) toneComplete();
+  if(isAlive(myId)) toneDone();
 }
 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════
 // REST
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════
 async function runRest(myId, dur, ring){
-  speak("쉬세요", 1.0);
-  for(let t=dur; t>0; t--){
-    if(!isAlive(myId)) return;
-    await waitPause(myId);
-    if(!isAlive(myId)) return;
-
-    ring.big().textContent = t;
-    ring.set(1 - t/dur, "var(--rest)");
-
-    if(t === 5) speak("5초 뒤 시작합니다", 1.0);
-    else if(t <= 3) beep(500, 60, 0.2);
-
+  speak('쉬세요',1);
+  for(let t=dur;t>0;t--){
+    if(!isAlive(myId))return;
+    await waitP(myId); if(!isAlive(myId))return;
+    ring.b().textContent=t;
+    ring.set(1-t/dur,'var(--rest)');
+    if(t===5) speak('5초 뒤 시작합니다',1);
+    else if(t<=3) beep(500,60,0.2);
     await sleep(1000);
   }
-  if(isAlive(myId)) toneComplete();
+  if(isAlive(myId)) toneDone();
 }
 
-// ═══════════════════════════════════════════
-// MAIN WORKOUT LOOP
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════
+// MAIN LOOP
+// ═══════════════════════════════════
 async function startWorkout(){
-  // Kill any previous session
   sessionId++;
-  const myId = sessionId;
-  paused = false;
+  const myId=sessionId;
+  paused=false;
 
-  // CRITICAL: unlock audio synchronously in user tap context
+  // Unlock audio + keep screen on (must be synchronous in tap)
   unlockAudio();
+  requestWakeLock();
 
-  // Unlock TTS on iOS
-  const warmup = new SpeechSynthesisUtterance(" ");
-  warmup.volume = 0;
-  warmup.lang = "ko-KR";
-  speechSynthesis?.speak(warmup);
+  // Warm up TTS
+  const w=new SpeechSynthesisUtterance(' '); w.volume=0; w.lang='ko-KR';
+  speechSynthesis?.speak(w);
   await sleep(200);
 
-  await speak("준비", 1.0);
-  if(!isAlive(myId)) return;
+  await speak('준비',1);
+  if(!isAlive(myId))return;
 
   startTotal();
+  const exR=makeRing('exRing',220), restR=makeRing('restRing',220);
+  let done=0;
 
-  const exRing = makeRing("exRing", 220);
-  const restRing = makeRing("restRing", 220);
-  let completedSets = 0;
+  for(let ei=0;ei<EX.length;ei++){
+    const ex=EX[ei];
+    for(let si=1;si<=ex.sets;si++){
+      if(!isAlive(myId))return;
 
-  for(let ei=0; ei<EX.length; ei++){
-    const ex = EX[ei];
+      showScreen('exerciseScreen');
+      document.getElementById('exEmoji').textContent=ex.emoji;
+      document.getElementById('exName').textContent=ex.name;
+      document.getElementById('exSet').textContent=`세트 ${si} / ${ex.sets}`;
+      document.getElementById('exTip').textContent=ex.tip;
+      document.getElementById('cmdBadge').style.display='none';
+      exR.set(0,'var(--green)'); exR.b().textContent='0';
+      exR.s().textContent=ex.type==='timed'?'초 남음':`/ ${ex.reps}회`;
+      updateProg(done);
 
-    for(let si=1; si<=ex.sets; si++){
-      if(!isAlive(myId)) return;
+      await speak(`${ex.name}, ${si}세트 시작합니다`,1);
+      if(!isAlive(myId))return;
+      await countdown(myId);
+      if(!isAlive(myId))return;
 
-      // Setup exercise screen
-      showScreen("exerciseScreen");
-      document.getElementById("exEmoji").textContent = ex.emoji;
-      document.getElementById("exName").textContent = ex.name;
-      document.getElementById("exSet").textContent = `세트 ${si} / ${ex.sets}`;
-      document.getElementById("exTip").textContent = ex.tip;
-      document.getElementById("cmdBadge").style.display = "none";
+      if(ex.type==='reps') await runReps(myId,ex,exR);
+      else await runTimed(myId,ex,exR);
+      if(!isAlive(myId))return;
 
-      exRing.set(0, "var(--green)");
-      exRing.big().textContent = "0";
-      exRing.sub().textContent = ex.type==="timed" ? "초 남음" : `/ ${ex.reps}회`;
-      updateProgress(completedSets);
+      done++;
+      updateProg(done);
 
-      await speak(`${ex.name}, ${si}세트 시작합니다`, 1.0);
-      if(!isAlive(myId)) return;
-
-      await countdown321(myId);
-      if(!isAlive(myId)) return;
-
-      // Run exercise
-      if(ex.type === "reps") await runReps(myId, ex, exRing);
-      else await runTimed(myId, ex, exRing);
-      if(!isAlive(myId)) return;
-
-      completedSets++;
-      updateProgress(completedSets);
-
-      const lastSet = si >= ex.sets;
-      const lastEx = ei >= EX.length - 1;
-
-      // All done?
-      if(lastSet && lastEx){
-        await speak("운동 완료! 수고했습니다!", 1.0);
+      const lastS=si>=ex.sets, lastE=ei>=EX.length-1;
+      if(lastS&&lastE){
+        await speak('운동 완료! 수고했습니다!',1);
         if(isAlive(myId)) showDone();
         return;
       }
 
-      // Rest period
-      const restDur = lastSet ? 60 : ex.rest;
-      showScreen("restScreen");
-      restRing.set(0, "var(--rest)");
-      restRing.big().textContent = restDur;
-      restRing.sub().textContent = "초";
+      const rd=lastS?90:ex.rest;
+      showScreen('restScreen');
+      restR.set(0,'var(--rest)'); restR.b().textContent=rd; restR.s().textContent='초';
 
-      if(lastSet){
-        document.getElementById("nextName").textContent = `${EX[ei+1].emoji} ${EX[ei+1].name} · 세트 1`;
-        await speak(`${EX[ei+1].name}으로 넘어갑니다. ${restDur}초 쉬세요`, 1.0);
-      } else {
-        document.getElementById("nextName").textContent = `${ex.emoji} ${ex.name} · 세트 ${si+1}`;
-        await speak(`${si}세트 완료. ${restDur}초 쉬세요`, 1.0);
+      if(lastS){
+        document.getElementById('nextName').textContent=`${EX[ei+1].emoji} ${EX[ei+1].name} · 세트 1`;
+        await speak(`${EX[ei+1].name}으로 넘어갑니다. ${rd}초 쉬세요`,1);
+      }else{
+        document.getElementById('nextName').textContent=`${ex.emoji} ${ex.name} · 세트 ${si+1}`;
+        await speak(`${si}세트 완료. ${rd}초 쉬세요`,1);
       }
-      if(!isAlive(myId)) return;
-
-      await runRest(myId, restDur, restRing);
+      if(!isAlive(myId))return;
+      await runRest(myId, rd, restR);
     }
   }
 }
 
-// ═══════════════════════════════════════════
-// DONE
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════
+// DONE / RESET
+// ═══════════════════════════════════
 function showDone(){
-  stopTotal();
-  showScreen("doneScreen");
-  document.getElementById("doneMsg").innerHTML = `총 소요 시간: ${fmt(totalSec)}<br>이제 러닝 나가자! 🏃‍♂️`;
-  document.getElementById("totalTime").style.color = "var(--green)";
-  const grid = document.getElementById("doneGrid");
-  grid.innerHTML = "";
-  EX.forEach(e=>{
-    const d = document.createElement("div");
-    d.className = "done-card";
-    d.innerHTML = `<div class="emoji">${e.emoji}</div><div class="check">✓ 완료</div>
-      <div class="sub">${e.type==="timed"?e.reps+"초":e.reps+"회"} × ${e.sets}세트</div>`;
-    grid.appendChild(d);
-  });
+  stopTotal(); releaseWakeLock();
+  showScreen('doneScreen');
+  document.getElementById('doneMsg').innerHTML=`총 소요 시간: ${fmt(totalSec)}<br>이제 러닝 나가자! 🏃‍♂️`;
+  document.getElementById('totalTime').style.color='var(--green)';
+  const g=document.getElementById('doneGrid'); g.innerHTML='';
+  EX.forEach(e=>{const d=document.createElement('div');d.className='done-card';
+    d.innerHTML=`<div class="emoji">${e.emoji}</div><div class="check">✓ 완료</div>
+    <div class="sub">${e.type==='timed'?e.reps+'초':e.reps+'회'} × ${e.sets}세트</div>`;
+    g.appendChild(d)});
 }
 
-// ═══════════════════════════════════════════
-// RESET
-// ═══════════════════════════════════════════
 function resetWorkout(){
-  sessionId++;              // kills any running loop
-  paused = false;
-  speechSynthesis?.cancel();
-  stopTotal();
-  totalSec = 0;
-  document.getElementById("totalTime").textContent = "0:00";
-  document.getElementById("totalTime").style.color = "var(--dim)";
-  document.getElementById("countdownOverlay").classList.remove("active");
-  document.getElementById("pauseBtn").textContent = "⏸ 일시정지";
-  document.getElementById("pauseBtn").classList.remove("active");
-  document.getElementById("restPauseBtn").textContent = "⏸ 일시정지";
-  document.getElementById("restPauseBtn").classList.remove("active");
-  showScreen("readyScreen");
+  sessionId++; paused=false;
+  speechSynthesis?.cancel(); stopTotal(); releaseWakeLock();
+  totalSec=0;
+  document.getElementById('totalTime').textContent='0:00';
+  document.getElementById('totalTime').style.color='var(--dim)';
+  document.getElementById('countdownOverlay').classList.remove('active');
+  ['pauseBtn','restPauseBtn'].forEach(id=>{
+    const b=document.getElementById(id); b.textContent='⏸ 일시정지'; b.classList.remove('active');
+  });
+  showScreen('readyScreen');
 }
 </script>
 </body>

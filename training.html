@@ -47,9 +47,9 @@ button:active{transform:scale(.96)}
 .ring-big{font-size:52px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
 .ring-sub{font-size:13px;color:var(--dim);margin-top:4px}
 
-.cmd-badge{font-size:22px;font-weight:800;letter-spacing:.05em;padding:12px 32px;border-radius:24px;transition:all .3s;animation:fadeSlide .3s ease}
-.cmd-down{color:var(--blue);background:rgba(59,130,246,.15)}
-.cmd-up{color:var(--green);background:rgba(34,197,94,.15)}
+.cmd-badge{font-size:24px;font-weight:800;letter-spacing:.05em;padding:14px 36px;border-radius:24px;transition:all .3s;animation:fadeSlide .3s ease}
+.cmd-down{color:var(--blue);background:rgba(59,130,246,.2);border:2px solid rgba(59,130,246,.3)}
+.cmd-up{color:var(--green);background:rgba(34,197,94,.2);border:2px solid rgba(34,197,94,.3)}
 .cmd-hold{color:var(--blue);background:rgba(59,130,246,.15);font-size:16px;font-weight:600;padding:8px 20px;border-radius:20px}
 
 .btn-row{display:flex;gap:12px;width:100%;margin-top:auto;padding-top:8px}
@@ -93,11 +93,11 @@ button:active{transform:scale(.96)}
 <div class="screen center" id="readyScreen">
   <div style="font-size:48px">🔥</div>
   <div style="font-size:22px;font-weight:700;text-align:center">홈트레이닝 루틴</div>
-  <div style="font-size:13px;color:var(--dim);text-align:center;line-height:1.6">음성 가이드로 페이스 조절 · 약 15분</div>
+  <div style="font-size:13px;color:var(--dim);text-align:center;line-height:1.6">부저음 가이드로 페이스 조절 · 약 15분</div>
   <div id="readyList" style="width:100%;display:flex;flex-direction:column;gap:10px;margin-top:8px"></div>
   <div class="info-box" style="margin-top:4px">
-    <div class="label" style="color:var(--accent)">🔊 음성 가이드 안내</div>
-    <div class="body">"내려가세요 / 올라가세요" 음성에 맞춰 운동하세요. 5회마다 횟수를 알려드립니다. 무음 모드를 해제하세요!</div>
+    <div class="label" style="color:var(--accent)">🔊 사운드 가이드 안내</div>
+    <div class="body">낮은 톤 = 내려가기, 높은 톤 = 올라가기. 화면에 동작이 표시됩니다. 세트 안내는 음성으로 나옵니다. 무음 모드를 해제하세요!</div>
   </div>
   <button class="btn-primary" style="margin-top:12px" onclick="startWorkout()">운동 시작 ▶</button>
 </div>
@@ -185,6 +185,39 @@ function beep(freq=800,dur=150,vol=.3){
   o.connect(g);g.connect(c.destination);o.frequency.value=freq;g.gain.value=vol;o.start();o.stop(c.currentTime+dur/1000)}catch(e){}
 }
 function vibrate(p=80){try{navigator.vibrate?.(p)}catch(e){}}
+
+// 내려가세요: 낮고 둔탁한 하강 톤 (뚜-둑)
+function toneDown(){
+  try{
+    const c=new(window.AudioContext||window.webkitAudioContext)();
+    const o=c.createOscillator(),g=c.createGain();
+    o.connect(g);g.connect(c.destination);
+    o.type="sine";o.frequency.setValueAtTime(480,c.currentTime);
+    o.frequency.linearRampToValueAtTime(320,c.currentTime+0.15);
+    g.gain.setValueAtTime(0.4,c.currentTime);
+    g.gain.linearRampToValueAtTime(0,c.currentTime+0.2);
+    o.start();o.stop(c.currentTime+0.2);
+  }catch(e){}
+  vibrate(60);
+}
+// 올라가세요: 밝고 경쾌한 상승 톤 (띠-딩)
+function toneUp(){
+  try{
+    const c=new(window.AudioContext||window.webkitAudioContext)();
+    const o=c.createOscillator(),g=c.createGain();
+    o.connect(g);g.connect(c.destination);
+    o.type="sine";o.frequency.setValueAtTime(600,c.currentTime);
+    o.frequency.linearRampToValueAtTime(900,c.currentTime+0.12);
+    g.gain.setValueAtTime(0.35,c.currentTime);
+    g.gain.linearRampToValueAtTime(0,c.currentTime+0.18);
+    o.start();o.stop(c.currentTime+0.18);
+  }catch(e){}
+  vibrate(40);
+}
+// 5회 알림: 짧은 더블 비프
+function toneCount(){
+  beep(700,60,.25); setTimeout(()=>beep(900,80,.3),100);
+}
 
 // ─── SVG Ring ───
 function makeRing(id,size){
@@ -276,7 +309,7 @@ async function runReps(ex, ring){
     const badge=document.getElementById("cmdBadge");
     badge.className="cmd-badge cmd-down"; badge.textContent="⬇ 내려가세요"; badge.classList.remove("hidden");
     badge.style.animation="none"; void badge.offsetWidth; badge.style.animation="fadeSlide .3s ease";
-    speak(ex.downCmd,1.1); vibrate(50);
+    toneDown();
 
     await sleep(ex.downTime);
     if(cancelled) return; await waitPause(); if(cancelled) return;
@@ -286,9 +319,9 @@ async function runReps(ex, ring){
     ring.big().textContent=i; ring.big().style.color="var(--green)";
     badge.className="cmd-badge cmd-up"; badge.textContent="⬆ 올라가세요";
     badge.style.animation="none"; void badge.offsetWidth; badge.style.animation="fadeSlide .3s ease";
-    speak(ex.upCmd,1.1); vibrate(50);
+    toneUp();
 
-    if(i%5===0||i===ex.reps) setTimeout(()=>{if(!cancelled)speak(i+"회",1.2)},600);
+    if(i%5===0||i===ex.reps) setTimeout(()=>{if(!cancelled)toneCount()},500);
 
     await sleep(ex.upTime);
     if(cancelled) return; await waitPause();

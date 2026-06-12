@@ -14,6 +14,8 @@
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;overflow-x:hidden;padding-bottom:72px}
 button{font-family:inherit;cursor:pointer;border:none;outline:none;transition:transform .1s}
 button:active{transform:scale(.96)}
+input{font-family:inherit;outline:none}
+input:focus{border-color:var(--accent)!important}
 
 /* ─── Bottom Nav ─── */
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);display:flex;z-index:200;padding-bottom:env(safe-area-inset-bottom)}
@@ -82,7 +84,7 @@ button:active{transform:scale(.96)}
 .d-summary-card .bar-fill{height:100%;border-radius:2px;transition:width .4s ease}
 .bar-cal{background:var(--accent)}.bar-pro{background:var(--green)}
 .d-tabs{display:flex;gap:6px;padding:0 16px;margin-bottom:16px;width:100%;max-width:420px}
-.d-tab{flex:1;padding:10px;font-size:14px;font-weight:600;text-align:center;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--dim);transition:all .2s}
+.d-tab{flex:1;padding:10px 4px;font-size:13px;font-weight:600;text-align:center;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--dim);transition:all .2s}
 .d-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 .meal{margin:0 16px 14px;background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;width:calc(100% - 32px);max-width:388px}
 .meal-header{padding:14px 16px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
@@ -167,10 +169,17 @@ button:active{transform:scale(.96)}
     <div class="d-summary-card"><div class="num cal" id="totalCal">0</div><div class="slabel">kcal / 1,461</div><div class="bar"><div class="bar-fill bar-cal" id="calBar" style="width:0%"></div></div></div>
     <div class="d-summary-card"><div class="num pro" id="totalPro">0</div><div class="slabel">단백질(g) / 147</div><div class="bar"><div class="bar-fill bar-pro" id="proBar" style="width:0%"></div></div></div>
   </div>
-  <div class="d-tabs"><div class="d-tab active" onclick="setDietTab('evening')">🏃 저녁 러닝</div><div class="d-tab" onclick="setDietTab('night')">🌙 야간 러닝</div></div>
+  <div class="d-tabs"><div class="d-tab" onclick="setDietTab('morning')">🌅 아침 러닝</div><div class="d-tab active" onclick="setDietTab('evening')">🏃 저녁 러닝</div><div class="d-tab" onclick="setDietTab('night')">🌙 야간 러닝</div></div>
   <div id="mealList" style="width:100%;max-width:420px"></div>
   <div class="d-note"><div class="nlabel">💡 팁</div><div class="nbody">파스타에 새우/브로콜리 추가 → 단백질↑. 더단백 하루 2병 챙기기! 양배추는 양 늘려도 OK.</div></div>
   <button class="d-reset" onclick="resetDiet()">↻ 체크 초기화</button>
+</div>
+
+<!-- ════════════════════════════════════ -->
+<!-- PAGE: RUNNING -->
+<!-- ════════════════════════════════════ -->
+<div class="page" id="runningPage" style="align-items:center">
+  <div id="runContent"></div>
 </div>
 
 <!-- ════════════════════════════════════ -->
@@ -179,6 +188,7 @@ button:active{transform:scale(.96)}
 <div class="bottom-nav">
   <div class="nav-btn active" id="navWorkout" onclick="switchPage('workout')"><div class="icon">🏋️</div>운동</div>
   <div class="nav-btn" id="navDiet" onclick="switchPage('diet')"><div class="icon">🥗</div>식단</div>
+  <div class="nav-btn" id="navRunning" onclick="switchPage('running')"><div class="icon">🏃</div>러닝</div>
 </div>
 
 <script>
@@ -188,9 +198,12 @@ button:active{transform:scale(.96)}
 function switchPage(p){
   document.getElementById('workoutPage').classList.toggle('active',p==='workout');
   document.getElementById('dietPage').classList.toggle('active',p==='diet');
+  document.getElementById('runningPage').classList.toggle('active',p==='running');
   document.getElementById('navWorkout').classList.toggle('active',p==='workout');
   document.getElementById('navDiet').classList.toggle('active',p==='diet');
+  document.getElementById('navRunning').classList.toggle('active',p==='running');
   if(p==='diet') renderDiet();
+  if(p==='running') renderRunning();
 }
 
 // ════════════════════════════════════
@@ -257,6 +270,13 @@ function resetWorkout(){sessionId++;paused=false;skipped=false;speechSynthesis?.
 // DIET CHECKLIST
 // ════════════════════════════════════
 const DMEALS={
+  morning:[
+    {time:"06:30",title:"러닝 전",items:[{name:"바나나 1개",kcal:100,pro:1,id:"m1"}]},
+    {time:"07:30",title:"러닝 후 아침",items:[{name:"삶은 계란 3개",kcal:234,pro:21,id:"m2"},{name:"더단백 밀크티",kcal:98,pro:20,id:"m3"}]},
+    {time:"12:00",title:"점심",items:[{name:"닭가슴살 150g",kcal:165,pro:46,id:"m4"},{name:"알리오올리오 80g",kcal:330,pro:10,id:"m5"},{name:"양배추 샐러드 (시오콘부+참기름)",kcal:60,pro:1,id:"m6"}]},
+    {time:"15:30",title:"간식",items:[{name:"그릭요거트 150g",kcal:90,pro:10,id:"m7"},{name:"블루베리 한 줌 (50g)",kcal:30,pro:0,id:"m8"},{name:"아몬드 15~20알",kcal:100,pro:4,id:"m9"}]},
+    {time:"18:30",title:"저녁",items:[{name:"삶은 계란 2개",kcal:156,pro:14,id:"m10"},{name:"더단백 밀크티",kcal:98,pro:20,id:"m11"}]},
+  ],
   evening:[
     {time:"09:00",title:"아침",items:[{name:"더단백 밀크티",kcal:98,pro:20,id:"e1"}]},
     {time:"12:00",title:"점심",items:[{name:"닭가슴살 150g",kcal:165,pro:46,id:"e2"},{name:"알리오올리오 80g",kcal:330,pro:10,id:"e3"},{name:"삶은 계란 2개",kcal:156,pro:14,id:"e4"},{name:"양배추 샐러드 (시오콘부+참기름)",kcal:60,pro:1,id:"e5"}]},
@@ -280,7 +300,7 @@ function saveDiet(){try{localStorage.setItem('dietCheck',JSON.stringify({date:to
 
 function renderDiet(){
   const meals=DMEALS[dietTab],list=document.getElementById('mealList');list.innerHTML='';
-  document.querySelectorAll('.d-tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&dietTab==='evening')||(i===1&&dietTab==='night')));
+  document.querySelectorAll('.d-tab').forEach((t,i)=>{const tabs=['morning','evening','night'];t.classList.toggle('active',tabs[i]===dietTab)});
   const d=new Date(),days=['일','월','화','수','목','금','토'];
   document.getElementById('dateLabel').textContent=`${d.getMonth()+1}월 ${d.getDate()}일 (${days[d.getDay()]})`;
   let tc=0,tp=0;
@@ -304,6 +324,129 @@ function resetDiet(){if(confirm('오늘 체크를 초기화할까요?')){dietChe
 setInterval(()=>{try{const s=JSON.parse(localStorage.getItem('dietCheck')||'{}');if(s.date&&s.date!==todayStr()){dietChecked={};saveDiet();renderDiet()}}catch(e){}},60000);
 
 loadDiet();
+
+// ════════════════════════════════════
+// RUNNING
+// ════════════════════════════════════
+const PLAN_START=new Date(2026,5,15); // June 15, 2026
+const PHASES=[{name:"기초 체력 구축",w:[1,6]},{name:"스피드 강화",w:[7,12]},{name:"지구력 확장",w:[13,18]},{name:"레이스 준비",w:[19,23]},{name:"테이퍼+대회",w:[24,26]}];
+const WK={
+1:["5km 이지런","4km 이지런","7km 롱런"],2:["5km 이지런","4km 이지런","8km 롱런"],
+3:["6km 이지+스트라이드","5km 이지런","9km 롱런"],4:["4km 이지런 (회복주)","4km 이지런","7km 롱런"],
+5:["6km 템포런","5km 이지런","10km 롱런"],6:["6km 템포런","5km 이지런","11km 롱런"],
+7:["6km 인터벌","5km 이지런","12km 롱런"],8:["7km 템포런","5km 이지런","13km 롱런"],
+9:["7km 인터벌","5km 이지런","14km 롱런"],10:["5km 이지런 (회복주)","4km 이지런","10km 롱런"],
+11:["7km 템포런","6km 이지런","14km 롱런"],12:["8km 인터벌","6km 이지런","15km 롱런"],
+13:["8km 템포런","6km 이지런","16km 롱런"],14:["8km 인터벌","6km 이지런","17km 롱런"],
+15:["9km 템포런","6km 이지런","18km 롱런"],16:["6km 이지런 (회복주)","5km 이지런","12km 롱런"],
+17:["9km 인터벌","7km 이지런","18km 롱런"],18:["10km 템포런","7km 이지런","20km 롱런"],
+19:["10km 레이스페이스","7km 이지런","18km 롱런"],20:["8km 인터벌","6km 이지런","16km 롱런"],
+21:["10km 시뮬레이션","6km 이지런","15km 롱런"],22:["5km 이지런 (회복주)","5km 이지런","12km 롱런"],
+23:["8km 템포런","6km 이지런","14km 롱런"],24:["6km 스피드","5km 이지런","10km 롱런"],
+25:["4km 이지런","3km 조깅","8km 이지런"],26:["3km 조깅","휴식","🏁 10km 대회 (sub-60!)"]
+};
+const SH={"이지":"Structure 26","템포":"Novablast 5","인터벌":"Novablast 5","롱런":"Novablast 5","스피드":"Novablast 5","레이스":"Novablast 5","시뮬":"Novablast 5","대회":"Novablast 5","회복":"Structure 26","조깅":"Structure 26","스트라이드":"Novablast 5"};
+function getShoe(d){for(const[k,v]of Object.entries(SH))if(d.includes(k))return v;return'Structure 26'}
+function getWk(d){return Math.floor((d-PLAN_START)/(1000*60*60*24*7))+1}
+function getPhase(w){return PHASES.find(p=>w>=p.w[0]&&w<=p.w[1])||PHASES[0]}
+
+let runLogs=[];
+function loadRL(){try{runLogs=JSON.parse(localStorage.getItem('runLogs')||'[]')}catch(e){runLogs=[]}}
+function saveRL(){try{localStorage.setItem('runLogs',JSON.stringify(runLogs))}catch(e){}}
+
+function renderRunning(){
+  const now=new Date(),week=getWk(now),phase=getPhase(week),plan=WK[week]||["—","—","—"],dow=now.getDay();
+  let h='';
+  h+=`<div class="d-header" style="width:100%;max-width:420px"><h2>🏃 러닝 훈련</h2><div class="date">${week>0&&week<=26?week+'주차 · '+phase.name:'훈련 기간 외'}</div></div>`;
+
+  // Week plan
+  if(week>=1&&week<=26){
+    h+=`<div style="padding:0 16px;width:100%;max-width:420px;margin-bottom:14px"><div style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden">`;
+    h+=`<div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:14px;font-weight:700">📅 이번 주 계획</div>`;
+    [{d:"화",i:0,n:2},{d:"목",i:1,n:4},{d:"토",i:2,n:6}].forEach(({d,i,n})=>{
+      const isT=dow===n;const shoe=getShoe(plan[i]);
+      h+=`<div style="padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.03);${isT?'background:rgba(255,107,53,.08)':''}">`;
+      h+=`<div style="width:28px;height:28px;border-radius:8px;background:${isT?'var(--accent)':'var(--border)'};color:${isT?'#fff':'var(--dim)'};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">${d}</div>`;
+      h+=`<div style="flex:1"><div style="font-size:13px;font-weight:600">${plan[i]}</div><div style="font-size:11px;color:var(--dim);margin-top:1px">👟 ${shoe}</div></div>`;
+      if(isT) h+=`<div style="font-size:10px;color:var(--accent);font-weight:700">TODAY</div>`;
+      h+=`</div>`;
+    });
+    h+=`</div></div>`;
+
+    // Today highlight
+    const isTrainDay=[2,4,6].includes(dow);
+    if(isTrainDay){
+      const idx=dow===2?0:dow===4?1:2;
+      h+=`<div style="padding:0 16px;width:100%;max-width:420px;margin-bottom:14px"><div style="background:linear-gradient(135deg,rgba(255,107,53,.12),rgba(255,107,53,.03));border:1px solid rgba(255,107,53,.2);border-radius:16px;padding:16px;text-align:center">`;
+      h+=`<div style="font-size:12px;color:var(--accent);font-weight:700;margin-bottom:6px">오늘의 훈련</div>`;
+      h+=`<div style="font-size:20px;font-weight:800">${plan[idx]}</div>`;
+      h+=`<div style="font-size:12px;color:var(--dim);margin-top:4px">👟 ${getShoe(plan[idx])}</div></div></div>`;
+    } else {
+      h+=`<div style="padding:0 16px;width:100%;max-width:420px;margin-bottom:14px"><div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;text-align:center">`;
+      h+=`<div style="font-size:12px;color:var(--green);font-weight:700;margin-bottom:6px">오늘은 휴식일</div>`;
+      h+=`<div style="font-size:16px;font-weight:700">🚶 산책 20분 + 스트레칭</div></div></div>`;
+    }
+  }
+
+  // Log form
+  h+=`<div style="padding:0 16px;width:100%;max-width:420px;margin-bottom:14px"><div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px">`;
+  h+=`<div style="font-size:14px;font-weight:700;margin-bottom:12px">✏️ 운동 기록</div>`;
+  h+=`<div style="display:flex;gap:8px;margin-bottom:10px">`;
+  h+=`<div style="flex:1"><div style="font-size:11px;color:var(--dim);margin-bottom:4px">거리 (km)</div><input id="logDist" type="number" step="0.1" placeholder="5.0" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:16px;font-weight:600"></div>`;
+  h+=`<div style="flex:1"><div style="font-size:11px;color:var(--dim);margin-bottom:4px">시간 (분:초)</div><input id="logTime" type="text" placeholder="32:00" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:16px;font-weight:600"></div>`;
+  h+=`</div><div style="display:flex;gap:8px">`;
+  h+=`<button onclick="addLog()" style="flex:1;padding:12px;font-size:14px;font-weight:600;background:var(--green);color:#fff;border-radius:12px">저장 ✓</button>`;
+  h+=`<button id="aiBtn" onclick="aiRun()" style="flex:1;padding:12px;font-size:14px;font-weight:600;background:var(--blue);color:#fff;border-radius:12px">🤖 AI 분석</button>`;
+  h+=`</div></div></div>`;
+
+  h+=`<div id="aiRes" style="padding:0 16px;width:100%;max-width:420px;display:none"></div>`;
+
+  // Logs
+  if(runLogs.length>0){
+    h+=`<div style="padding:0 16px;width:100%;max-width:420px;margin-bottom:14px"><div style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden">`;
+    h+=`<div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between"><div style="font-size:14px;font-weight:700">📋 최근 기록</div><button onclick="clrLogs()" style="font-size:11px;color:var(--dim);background:none;padding:4px 8px">초기화</button></div>`;
+    runLogs.slice(-10).reverse().forEach(l=>{
+      const p=l.time&&l.dist?l.time/l.dist:0;const pm=Math.floor(p);const ps=Math.round((p-pm)*60).toString().padStart(2,'0');
+      h+=`<div style="padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.03)">`;
+      h+=`<div style="font-size:11px;color:var(--dim);width:46px;flex-shrink:0">${l.date.slice(5)}</div>`;
+      h+=`<div style="flex:1;font-size:13px;font-weight:600">${l.dist}km</div>`;
+      h+=`<div style="font-size:12px;color:var(--accent)">${l.ts||'—'}</div>`;
+      h+=`<div style="font-size:11px;color:var(--green)">${p?pm+"'"+ps+'"/km':'—'}</div></div>`;
+    });
+    h+=`</div></div>`;
+  }
+  document.getElementById('runContent').innerHTML=h;
+}
+
+function addLog(){
+  const dist=parseFloat(document.getElementById('logDist')?.value);
+  const ts=(document.getElementById('logTime')?.value||'').trim();
+  if(!dist||dist<=0){alert('거리를 입력하세요');return}
+  let tm=0;if(ts){const p=ts.split(':');tm=parseInt(p[0]||0)+(parseInt(p[1]||0)/60)}
+  const n=new Date(),ds=`${n.getFullYear()}-${(n.getMonth()+1).toString().padStart(2,'0')}-${n.getDate().toString().padStart(2,'0')}`;
+  runLogs.push({date:ds,dist,time:tm,ts,week:getWk(n)});
+  saveRL();renderRunning();
+}
+function clrLogs(){if(confirm('기록을 초기화할까요?')){runLogs=[];saveRL();renderRunning()}}
+
+async function aiRun(){
+  const btn=document.getElementById('aiBtn'),res=document.getElementById('aiRes');
+  if(runLogs.length<1){alert('운동 기록을 먼저 입력하세요');return}
+  btn.textContent='분석 중...';btn.disabled=true;
+  res.style.display='block';res.innerHTML='<div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;text-align:center;color:var(--dim);margin-bottom:14px">🤖 AI가 분석 중...</div>';
+  const w=getWk(new Date()),ph=getPhase(w),pl=WK[w];
+  const lt=runLogs.slice(-14).map(l=>`${l.date}: ${l.dist}km, ${l.ts||'시간미입력'}, 페이스 ${l.time&&l.dist?(l.time/l.dist).toFixed(2):'?'}분/km`).join('\n');
+  const prompt=`러닝 코치로서 한국어로 짧고 실용적 피드백을 주세요.\n선수: 남성 174cm 77kg, 마운자로 복용, 러닝 2개월차\n목표: 연말 10km 대회 sub-60 (현재 64분, 페이스 6:25/km)\n현재: ${w}주차 (${ph.name})\n이번주 계획: 화 ${pl?pl[0]:'—'}, 목 ${pl?pl[1]:'—'}, 토 ${pl?pl[2]:'—'}\n신발: Structure26(이지), Novablast5(스피드/롱런)\n\n최근 기록:\n${lt}\n\n분석 항목 (각 2-3문장):\n1. 📊 페이스 변화 추이\n2. ✅ 계획 대비 수행 평가\n3. 💡 다음 주 조언\n4. ⚠️ 주의사항\n\n총 15문장 이내.`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+    const d=await r.json();const txt=d.content?.map(c=>c.text||'').join('')||'분석 실패';
+    res.innerHTML=`<div style="background:var(--card);border:1px solid var(--blue);border-radius:16px;padding:16px;margin-bottom:14px"><div style="font-size:12px;color:var(--blue);font-weight:700;margin-bottom:8px">🤖 AI 코치 분석</div><div style="font-size:13px;line-height:1.7;white-space:pre-wrap">${txt}</div></div>`;
+  }catch(e){
+    res.innerHTML=`<div style="background:var(--card);border:1px solid #ef4444;border-radius:16px;padding:16px;margin-bottom:14px;font-size:13px;color:#ef4444">분석 중 오류 발생. 다시 시도해주세요.</div>`;
+  }
+  btn.textContent='🤖 AI 분석';btn.disabled=false;
+}
+loadRL();
 </script>
 </body>
 </html>

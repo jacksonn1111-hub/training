@@ -5,23 +5,35 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="홈트 15분">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
-<title>홈트 15분</title>
+<meta name="apple-mobile-web-app-title" content="홈트+식단">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💪</text></svg>">
+<title>홈트 + 식단</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
 :root{--bg:#0a0a0f;--card:#14141f;--accent:#ff6b35;--green:#22c55e;--blue:#3b82f6;--text:#f0f0f5;--dim:#6b6b80;--border:#1e1e2e;--rest:#a855f7}
-body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;overflow-x:hidden;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;overflow-x:hidden;padding-bottom:72px}
 button{font-family:inherit;cursor:pointer;border:none;outline:none;transition:transform .1s}
 button:active{transform:scale(.96)}
-.header{width:100%;max-width:420px;padding:16px 20px 8px;display:flex;justify-content:space-between;align-items:center}
-.header-label{font-size:13px;color:var(--dim)}
-.header-time{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--dim)}
-.progress-bar{width:calc(100% - 40px);max-width:400px;height:4px;background:var(--border);border-radius:2px;margin:4px 0 12px;overflow:hidden}
-.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:2px;transition:width .5s ease}
-.screen{flex:1;display:none;flex-direction:column;align-items:center;padding:12px 20px 24px;max-width:420px;width:100%;gap:12px}
-.screen.center{justify-content:center;gap:20px}
-.screen.active{display:flex}
+
+/* ─── Bottom Nav ─── */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);display:flex;z-index:200;padding-bottom:env(safe-area-inset-bottom)}
+.nav-btn{flex:1;padding:10px 0 8px;text-align:center;color:var(--dim);font-size:10px;font-weight:600;background:none;transition:color .2s}
+.nav-btn .icon{font-size:22px;margin-bottom:2px}
+.nav-btn.active{color:var(--accent)}
+
+/* ─── Pages ─── */
+.page{display:none;flex-direction:column;align-items:center;min-height:calc(100vh - 72px);width:100%}
+.page.active{display:flex}
+
+/* ─── Workout Styles ─── */
+.w-header{width:100%;max-width:420px;padding:16px 20px 8px;display:flex;justify-content:space-between;align-items:center}
+.w-header-label{font-size:13px;color:var(--dim)}
+.w-header-time{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--dim)}
+.w-progress-bar{width:calc(100% - 40px);max-width:400px;height:4px;background:var(--border);border-radius:2px;margin:4px 0 12px;overflow:hidden}
+.w-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:2px;transition:width .5s ease}
+.w-screen{flex:1;display:none;flex-direction:column;align-items:center;padding:12px 20px 24px;max-width:420px;width:100%;gap:12px}
+.w-screen.center{justify-content:center;gap:20px}
+.w-screen.active{display:flex}
 .ex-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:14px;width:100%}
 .ex-card .emoji{font-size:28px;flex-shrink:0}
 .ex-card .name{font-size:15px;font-weight:600}
@@ -33,10 +45,9 @@ button:active{transform:scale(.96)}
 .ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .ring-big{font-size:52px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
 .ring-sub{font-size:13px;color:var(--dim);margin-top:4px}
-.cmd-badge{font-size:24px;font-weight:800;letter-spacing:.05em;padding:14px 36px;border-radius:24px;animation:fadeSlide .3s ease}
+.cmd-badge{font-size:24px;font-weight:800;padding:14px 36px;border-radius:24px;animation:fadeSlide .3s ease}
 .cmd-down{color:var(--blue);background:rgba(59,130,246,.2);border:2px solid rgba(59,130,246,.3)}
 .cmd-up{color:var(--green);background:rgba(34,197,94,.2);border:2px solid rgba(34,197,94,.3)}
-.cmd-hold{color:var(--blue);background:rgba(59,130,246,.15);font-size:16px;font-weight:600;padding:8px 20px;border-radius:20px}
 .btn-row{display:flex;gap:12px;width:100%;margin-top:auto;padding-top:8px}
 .btn-primary{width:100%;padding:18px;font-size:18px;font-weight:700;background:linear-gradient(135deg,var(--accent),#ff8c5a);color:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(255,107,53,.3)}
 .btn-pause{flex:1;padding:14px;font-size:15px;font-weight:600;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:14px}
@@ -56,467 +67,243 @@ button:active{transform:scale(.96)}
 .next-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 18px;width:100%;text-align:center}
 .next-box .label{font-size:11px;color:var(--dim);margin-bottom:6px;font-weight:600}
 .next-box .name{font-size:16px;font-weight:700}
+
+/* ─── Diet Styles ─── */
+.d-header{padding:16px 20px 12px;text-align:center;width:100%;max-width:420px}
+.d-header h2{font-size:20px;font-weight:800}
+.d-header .date{font-size:12px;color:var(--dim);margin-top:4px}
+.d-summary{display:flex;gap:10px;padding:0 16px;margin-bottom:16px;width:100%;max-width:420px}
+.d-summary-card{flex:1;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 12px;text-align:center}
+.d-summary-card .num{font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.d-summary-card .num.cal{color:var(--accent)}
+.d-summary-card .num.pro{color:var(--green)}
+.d-summary-card .slabel{font-size:11px;color:var(--dim);margin-top:4px;font-weight:600}
+.d-summary-card .bar{height:4px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden}
+.d-summary-card .bar-fill{height:100%;border-radius:2px;transition:width .4s ease}
+.bar-cal{background:var(--accent)}.bar-pro{background:var(--green)}
+.d-tabs{display:flex;gap:6px;padding:0 16px;margin-bottom:16px;width:100%;max-width:420px}
+.d-tab{flex:1;padding:10px;font-size:14px;font-weight:600;text-align:center;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--dim);transition:all .2s}
+.d-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.meal{margin:0 16px 14px;background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;width:calc(100% - 32px);max-width:388px}
+.meal-header{padding:14px 16px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.meal-time{font-size:12px;color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
+.meal-title{font-size:15px;font-weight:700;flex:1}
+.meal-kcal{font-size:11px;color:var(--dim);font-weight:600}
+.d-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.03);transition:background .2s}
+.d-item:last-child{border-bottom:none}
+.d-item.checked{opacity:.5}
+.d-item.checked .d-item-name{text-decoration:line-through}
+.d-checkbox{width:24px;height:24px;border-radius:8px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;font-size:14px}
+.d-item.checked .d-checkbox{background:var(--green);border-color:var(--green)}
+.d-item-info{flex:1}
+.d-item-name{font-size:14px;font-weight:500;line-height:1.3}
+.d-item-detail{font-size:11px;color:var(--dim);margin-top:2px;display:flex;gap:8px}
+.d-item-detail .kcal{color:var(--accent)}
+.d-item-detail .pro{color:var(--green)}
+.d-note{margin:0 16px 14px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 16px;width:calc(100% - 32px);max-width:388px}
+.d-note .nlabel{font-size:11px;color:var(--rest);font-weight:700;margin-bottom:4px}
+.d-note .nbody{font-size:12px;color:var(--dim);line-height:1.6}
+.d-reset{display:block;margin:20px auto;padding:10px 24px;font-size:13px;font-weight:600;background:var(--card);color:var(--dim);border:1px solid var(--border);border-radius:12px}
+
 @keyframes fadeSlide{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes countPop{from{transform:scale(1.5);opacity:0}to{transform:scale(1);opacity:1}}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="header-label">🏠 홈트 15분</div>
-  <div class="header-time" id="totalTime">0:00</div>
-</div>
-<div class="progress-bar" style="display:none" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+<!-- ════════════════════════════════════ -->
+<!-- PAGE: WORKOUT -->
+<!-- ════════════════════════════════════ -->
+<div class="page active" id="workoutPage">
+  <div class="w-header">
+    <div class="w-header-label">🏠 홈트 15분</div>
+    <div class="w-header-time" id="totalTime">0:00</div>
+  </div>
+  <div class="w-progress-bar" style="display:none" id="progressBar"><div class="w-progress-fill" id="progressFill"></div></div>
 
-<!-- READY -->
-<div class="screen center active" id="readyScreen">
-  <div style="font-size:48px">🔥</div>
-  <div style="font-size:22px;font-weight:700;text-align:center">홈트레이닝 루틴</div>
-  <div style="font-size:13px;color:var(--dim);text-align:center;line-height:1.6">부저음 가이드 · 약 12분</div>
-  <div id="readyList" style="width:100%;display:flex;flex-direction:column;gap:10px;margin-top:8px"></div>
-  <div class="info-box" style="margin-top:4px">
-    <div class="label" style="color:var(--accent)">🔊 사운드 가이드</div>
-    <div class="body">낮은 톤 = 내려가기, 높은 톤 = 올라가기. 화면에 동작이 표시됩니다. 세트 안내는 음성으로 나옵니다. 운동 중 화면이 꺼지지 않습니다.</div>
+  <div class="w-screen center active" id="readyScreen">
+    <div style="font-size:48px">🔥</div>
+    <div style="font-size:22px;font-weight:700;text-align:center">홈트레이닝 루틴</div>
+    <div style="font-size:13px;color:var(--dim);text-align:center;line-height:1.6">부저음 가이드 · 약 12분</div>
+    <div id="readyList" style="width:100%;display:flex;flex-direction:column;gap:10px;margin-top:8px"></div>
+    <div class="info-box" style="margin-top:4px">
+      <div class="label" style="color:var(--accent)">🔊 사운드 가이드</div>
+      <div class="body">낮은 톤 = 내려가기, 높은 톤 = 올라가기. 화면에 동작 표시. 운동 중 화면 꺼지지 않습니다.</div>
+    </div>
+    <button class="btn-primary" style="margin-top:12px" onclick="startWorkout()">운동 시작 ▶</button>
   </div>
-  <button class="btn-primary" style="margin-top:12px" onclick="startWorkout()">운동 시작 ▶</button>
-</div>
 
-<!-- EXERCISE -->
-<div class="screen" id="exerciseScreen">
-  <div style="text-align:center">
-    <div id="exEmoji" style="font-size:32px;margin-bottom:2px"></div>
-    <div id="exName" style="font-size:20px;font-weight:700"></div>
-    <div id="exSet" style="font-size:13px;color:var(--accent);font-weight:600;margin-top:4px"></div>
+  <div class="w-screen" id="exerciseScreen">
+    <div style="text-align:center"><div id="exEmoji" style="font-size:32px;margin-bottom:2px"></div><div id="exName" style="font-size:20px;font-weight:700"></div><div id="exSet" style="font-size:13px;color:var(--accent);font-weight:600;margin-top:4px"></div></div>
+    <div class="ring-wrap" id="exRing"></div>
+    <div id="cmdBadge" style="display:none"></div>
+    <div class="info-box"><div class="label">💡 자세 팁</div><div class="body" id="exTip"></div></div>
+    <div class="btn-row"><button class="btn-pause" id="pauseBtn" onclick="togglePause()">⏸ 일시정지</button><button class="btn-skip" onclick="skipCurrent()">⏭ 다음</button><button class="btn-stop" onclick="resetWorkout()">✕ 중단</button></div>
   </div>
-  <div class="ring-wrap" id="exRing"></div>
-  <div id="cmdBadge" style="display:none"></div>
-  <div class="info-box">
-    <div class="label">💡 자세 팁</div>
-    <div class="body" id="exTip"></div>
-  </div>
-  <div class="btn-row">
-    <button class="btn-pause" id="pauseBtn" onclick="togglePause()">⏸ 일시정지</button>
-    <button class="btn-skip" onclick="skipCurrent()">⏭ 다음</button>
-    <button class="btn-stop" onclick="resetWorkout()">✕ 중단</button>
-  </div>
-</div>
 
-<!-- REST -->
-<div class="screen center" id="restScreen">
-  <div class="rest-label">☕ 쉬는 시간</div>
-  <div class="ring-wrap" id="restRing"></div>
-  <div class="next-box">
-    <div class="label">다음</div>
-    <div class="name" id="nextName"></div>
+  <div class="w-screen center" id="restScreen">
+    <div class="rest-label">☕ 쉬는 시간</div>
+    <div class="ring-wrap" id="restRing"></div>
+    <div class="next-box"><div class="label">다음</div><div class="name" id="nextName"></div></div>
+    <div class="btn-row"><button class="btn-pause" id="restPauseBtn" onclick="togglePause()">⏸ 일시정지</button><button class="btn-skip" onclick="skipCurrent()">⏭ 다음</button><button class="btn-stop" onclick="resetWorkout()">✕ 중단</button></div>
   </div>
-  <div class="btn-row">
-    <button class="btn-pause" id="restPauseBtn" onclick="togglePause()">⏸ 일시정지</button>
-    <button class="btn-skip" onclick="skipCurrent()">⏭ 다음</button>
-    <button class="btn-stop" onclick="resetWorkout()">✕ 중단</button>
+
+  <div class="w-screen center" id="doneScreen">
+    <div style="font-size:64px">🎉</div><div style="font-size:24px;font-weight:800">운동 완료!</div>
+    <div id="doneMsg" style="font-size:14px;color:var(--dim);text-align:center;line-height:1.6"></div>
+    <div class="done-grid" id="doneGrid"></div>
+    <button class="btn-primary" style="margin-top:12px" onclick="resetWorkout()">처음으로 🔄</button>
   </div>
 </div>
 
-<!-- DONE -->
-<div class="screen center" id="doneScreen">
-  <div style="font-size:64px">🎉</div>
-  <div style="font-size:24px;font-weight:800">운동 완료!</div>
-  <div id="doneMsg" style="font-size:14px;color:var(--dim);text-align:center;line-height:1.6"></div>
-  <div class="done-grid" id="doneGrid"></div>
-  <button class="btn-primary" style="margin-top:12px" onclick="resetWorkout()">처음으로 🔄</button>
+<div class="countdown-overlay" id="countdownOverlay"><div class="countdown-num" id="countdownNum"></div><div class="countdown-label">준비하세요</div></div>
+
+<!-- ════════════════════════════════════ -->
+<!-- PAGE: DIET -->
+<!-- ════════════════════════════════════ -->
+<div class="page" id="dietPage">
+  <div class="d-header"><h2>🥗 오늘 식단</h2><div class="date" id="dateLabel"></div></div>
+  <div class="d-summary">
+    <div class="d-summary-card"><div class="num cal" id="totalCal">0</div><div class="slabel">kcal / 1,461</div><div class="bar"><div class="bar-fill bar-cal" id="calBar" style="width:0%"></div></div></div>
+    <div class="d-summary-card"><div class="num pro" id="totalPro">0</div><div class="slabel">단백질(g) / 147</div><div class="bar"><div class="bar-fill bar-pro" id="proBar" style="width:0%"></div></div></div>
+  </div>
+  <div class="d-tabs"><div class="d-tab active" onclick="setDietTab('evening')">🏃 저녁 러닝</div><div class="d-tab" onclick="setDietTab('night')">🌙 야간 러닝</div></div>
+  <div id="mealList" style="width:100%;max-width:420px"></div>
+  <div class="d-note"><div class="nlabel">💡 팁</div><div class="nbody">파스타에 새우/브로콜리 추가 → 단백질↑. 더단백 하루 2병 챙기기! 양배추는 양 늘려도 OK.</div></div>
+  <button class="d-reset" onclick="resetDiet()">↻ 체크 초기화</button>
 </div>
 
-<!-- COUNTDOWN -->
-<div class="countdown-overlay" id="countdownOverlay">
-  <div class="countdown-num" id="countdownNum"></div>
-  <div class="countdown-label">준비하세요</div>
+<!-- ════════════════════════════════════ -->
+<!-- BOTTOM NAV -->
+<!-- ════════════════════════════════════ -->
+<div class="bottom-nav">
+  <div class="nav-btn active" id="navWorkout" onclick="switchPage('workout')"><div class="icon">🏋️</div>운동</div>
+  <div class="nav-btn" id="navDiet" onclick="switchPage('diet')"><div class="icon">🥗</div>식단</div>
 </div>
 
 <script>
-// ═══════════════════════════════════
-// DATA — 체력에 맞게 조정된 루틴
-// ═══════════════════════════════════
-const EX = [
-  { name:"맨몸 스쿼트", emoji:"🦵", reps:15, sets:3, type:"reps", rest:60,
-    target:"허벅지 근육 강화", tip:"무릎이 발끝을 넘지 않게, 허벅지가 바닥과 평행할 때까지",
-    downMs:2500, upMs:2000 },
-  { name:"무릎 대고 푸쉬업", emoji:"💪", reps:8, sets:3, type:"reps", rest:60,
-    target:"가슴, 팔 근육 강화", tip:"팔꿈치를 45도로 벌리고, 가슴이 바닥에 닿을 듯이",
-    downMs:2500, upMs:2000 },
-  { name:"플랭크", emoji:"🧘", reps:30, sets:3, type:"timed", rest:45,
-    target:"코어 강화", tip:"엉덩이를 너무 올리거나 내리지 말고 일직선 유지" },
+// ════════════════════════════════════
+// PAGE SWITCHING
+// ════════════════════════════════════
+function switchPage(p){
+  document.getElementById('workoutPage').classList.toggle('active',p==='workout');
+  document.getElementById('dietPage').classList.toggle('active',p==='diet');
+  document.getElementById('navWorkout').classList.toggle('active',p==='workout');
+  document.getElementById('navDiet').classList.toggle('active',p==='diet');
+  if(p==='diet') renderDiet();
+}
+
+// ════════════════════════════════════
+// WORKOUT (same logic as before)
+// ════════════════════════════════════
+const EX=[
+  {name:"맨몸 스쿼트",emoji:"🦵",reps:15,sets:3,type:"reps",rest:60,target:"허벅지 근육 강화",tip:"무릎이 발끝을 넘지 않게, 허벅지가 바닥과 평행할 때까지",downMs:2500,upMs:2000},
+  {name:"무릎 대고 푸쉬업",emoji:"💪",reps:8,sets:3,type:"reps",rest:60,target:"가슴, 팔 근육 강화",tip:"팔꿈치를 45도로 벌리고, 가슴이 바닥에 닿을 듯이",downMs:2500,upMs:2000},
+  {name:"플랭크",emoji:"🧘",reps:30,sets:3,type:"timed",rest:45,target:"코어 강화",tip:"엉덩이를 너무 올리거나 내리지 말고 일직선 유지"},
 ];
-const TOTAL_SETS = EX.reduce((a,e)=>a+e.sets, 0);
+const TOTAL_SETS=EX.reduce((a,e)=>a+e.sets,0);
+let sessionId=0,paused=false,skipped=false,totalSec=0,totalIv=null;
+let wakeLock=null,noSleepVideo=null,audioCtx=null,keepAlive=null;
 
-// ═══════════════════════════════════
-// STATE
-// ═══════════════════════════════════
-let sessionId = 0;
-let paused = false;
-let skipped = false;
-let totalSec = 0;
-let totalIv = null;
-
-function isAlive(id){ return id === sessionId; }
-function isRunning(id){ return isAlive(id) && !skipped; }
-function skipCurrent(){ skipped = true; speechSynthesis?.cancel(); }
-
-// ═══════════════════════════════════
-// WAKE LOCK — 화면 꺼짐 방지
-// ═══════════════════════════════════
-let wakeLock = null;
-let noSleepVideo = null;
-
-async function requestWakeLock(){
-  // 1) Wake Lock API (iOS 16.4+)
-  if('wakeLock' in navigator){
-    try{
-      wakeLock = await navigator.wakeLock.request('screen');
-      wakeLock.addEventListener('release', ()=>{ wakeLock = null; });
-      return;
-    }catch(e){}
-  }
-  // 2) Fallback: silent video loop (older iOS)
-  if(!noSleepVideo){
-    noSleepVideo = document.createElement('video');
-    noSleepVideo.setAttribute('playsinline','');
-    noSleepVideo.setAttribute('webkit-playsinline','');
-    noSleepVideo.style.cssText='position:fixed;top:-1px;left:-1px;width:1px;height:1px;opacity:0.01';
-    noSleepVideo.src='data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAu1tZGF0AAACrgYF//+q3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE1MiByMjg1NCBlOWE1OTAzIC0gSC4yNjQvTVBFRy00IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAxNyAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub3JnL3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTEgcmVmPTMgZGVibG9jaz0xOjA6MCBhbmFseXNlPTB4MzoweDExMyBtZT1oZXggc3VibWU9NyBwc3k9MSBwc3lfcmQ9MS4wMDowLjAwIG1peGVkX3JlZj0xIG1lX3JhbmdlPTE2IGNocm9tYV9tZT0xIHRyZWxsaXM9MSA4eDhkY3Q9MSBjcW09MCBkZWFkem9uZT0yMSwxMSBmYXN0X3Bza2lwPTEgY2hyb21hX3FwX29mZnNldD0tMiB0aHJlYWRzPTEgbG9va2FoZWFkX3RocmVhZHM9MSBzbGljZWRfdGhyZWFkcz0wIG5yPTAgZGVjaW1hdGU9MSBpbnRlcmxhY2VkPTAgYmx1cmF5X2NvbXBhdD0wIGNvbnN0cmFpbmVkX2ludHJhPTAgYmZyYW1lcz0zIGJfcHlyYW1pZD0yIGJfYWRhcHQ9MSBiX2JpYXM9MCBkaXJlY3Q9MSB3ZWlnaHRiPTEgb3Blbl9nb3A9MSB3ZWlnaHRwPTIga2V5aW50PTI1MCBrZXlpbnRfbWluPTI1IHNjZW5lY3V0PTQwIGludHJhX3JlZnJlc2g9MCByY19sb29rYWhlYWQ9NDAgcmM9Y3JmIG1idHJlZT0xIGNyZj0yMy4wIHFjb21wPTAuNjAgcXBtaW49MCBxcG1heD02OSBxcHN0ZXA9NCBpcF9yYXRpbz0xLjQwIGFxPTE6MS4wMACAAAAAbWWIhAAz//727L4FNf2f0JcRLMXaSnA+KqSAgHc0wAAAAwAAAwAAFgn0IAAnUAAAAwAAHiEcAAAAXBYAIcAAAAMAAAMAAAMAAAMANBAAAAMAAAMAAAMAAAMAAAMAVOAAAAMAAAMAAAMAAAMAAAMB4AAAAAH0pkbi6wdk';
-    noSleepVideo.loop=true;
-    document.body.appendChild(noSleepVideo);
-  }
-  try{ await noSleepVideo.play(); }catch(e){}
-}
-
-function releaseWakeLock(){
-  if(wakeLock){ try{wakeLock.release()}catch(e){} wakeLock=null; }
-  if(noSleepVideo){ try{noSleepVideo.pause()}catch(e){} }
-}
-
-document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible' && totalIv) requestWakeLock();
-});
-
-// ═══════════════════════════════════
-// AUDIO — iOS 호환 (keepalive loop)
-// ═══════════════════════════════════
-let audioCtx = null;
-let keepAlive = null;
-
-function unlockAudio(){
-  if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-  if(audioCtx.state==='suspended') audioCtx.resume();
-
-  if(!keepAlive){
-    const buf = audioCtx.createBuffer(1, audioCtx.sampleRate, audioCtx.sampleRate);
-    const d = buf.getChannelData(0);
-    for(let i=0;i<d.length;i++) d[i]=0.00001;
-    keepAlive = audioCtx.createBufferSource();
-    keepAlive.buffer = buf;
-    keepAlive.loop = true;
-    const g = audioCtx.createGain();
-    g.gain.value = 0.001;
-    keepAlive.connect(g);
-    g.connect(audioCtx.destination);
-    keepAlive.start();
-  }
-
-  // Audible blip to fully unlock
-  const o=audioCtx.createOscillator(), g=audioCtx.createGain();
-  o.connect(g); g.connect(audioCtx.destination);
-  o.frequency.value=440;
-  g.gain.setValueAtTime(0.15, audioCtx.currentTime);
-  g.gain.linearRampToValueAtTime(0, audioCtx.currentTime+0.08);
-  o.start(); o.stop(audioCtx.currentTime+0.08);
-}
-
-function playTone(f1,f2,dur,vol){
-  if(!audioCtx) return;
-  try{
-    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
-    o.connect(g); g.connect(audioCtx.destination);
-    o.type='sine';
-    o.frequency.setValueAtTime(f1, audioCtx.currentTime);
-    o.frequency.linearRampToValueAtTime(f2, audioCtx.currentTime+dur);
-    g.gain.setValueAtTime(vol, audioCtx.currentTime);
-    g.gain.linearRampToValueAtTime(0, audioCtx.currentTime+dur);
-    o.start(audioCtx.currentTime);
-    o.stop(audioCtx.currentTime+dur);
-  }catch(e){}
-}
-
-function toneDown(){ playTone(480,300,0.2,0.5); try{navigator.vibrate?.(60)}catch(e){} }
-function toneUp(){ playTone(600,950,0.15,0.45); try{navigator.vibrate?.(40)}catch(e){} }
-function toneCount(){ playTone(700,700,0.06,0.3); setTimeout(()=>playTone(950,950,0.08,0.35),100); }
-function beep(f,d,v){ playTone(f,f,d/1000,v); }
-function toneDone(){ playTone(800,800,0.1,0.35); setTimeout(()=>playTone(1000,1000,0.1,0.35),120); setTimeout(()=>playTone(1300,1300,0.2,0.45),250); try{navigator.vibrate?.([80,40,80,40,150])}catch(e){} }
-
-// ═══════════════════════════════════
-// TTS
-// ═══════════════════════════════════
-function speak(text, rate){
-  return new Promise(resolve=>{
-    if(!window.speechSynthesis){resolve();return}
-    speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(text);
-    u.lang='ko-KR'; u.rate=rate||1; u.volume=1;
-    const fb=setTimeout(resolve, Math.max(3000, text.length*200));
-    u.onend=()=>{clearTimeout(fb);resolve()};
-    u.onerror=()=>{clearTimeout(fb);resolve()};
-    speechSynthesis.speak(u);
-  });
-}
-
-// ═══════════════════════════════════
-// HELPERS
-// ═══════════════════════════════════
+function isAlive(id){return id===sessionId}
+function isRunning(id){return isAlive(id)&&!skipped}
+function skipCurrent(){skipped=true;speechSynthesis?.cancel()}
 function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
 async function waitP(id){while(paused&&isAlive(id))await sleep(80)}
 function fmt(s){return Math.floor(s/60)+':'+(s%60).toString().padStart(2,'0')}
 
-function makeRing(id,sz){
-  const sw=10,r=(sz-sw)/2,c=2*Math.PI*r;
-  document.getElementById(id).innerHTML=`
-    <svg width="${sz}" height="${sz}" style="transform:rotate(-90deg)">
-      <circle cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="var(--border)" stroke-width="${sw}"/>
-      <circle id="${id}A" cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="var(--green)"
-        stroke-width="${sw}" stroke-dasharray="${c}" stroke-dashoffset="${c}" stroke-linecap="round"
-        style="transition:stroke-dashoffset .4s ease"/>
-    </svg>
-    <div class="ring-center"><div class="ring-big" id="${id}B">0</div><div class="ring-sub" id="${id}S"></div></div>`;
-  return{c, a:()=>document.getElementById(id+'A'), b:()=>document.getElementById(id+'B'), s:()=>document.getElementById(id+'S'),
-    set(p,col){const a=this.a();if(a){a.style.strokeDashoffset=this.c*(1-p);a.setAttribute('stroke',col)}}};
-}
+// Wake Lock
+async function requestWakeLock(){if('wakeLock' in navigator){try{wakeLock=await navigator.wakeLock.request('screen');wakeLock.addEventListener('release',()=>{wakeLock=null});return}catch(e){}}if(!noSleepVideo){noSleepVideo=document.createElement('video');noSleepVideo.setAttribute('playsinline','');noSleepVideo.style.cssText='position:fixed;top:-1px;left:-1px;width:1px;height:1px;opacity:0.01';noSleepVideo.src='data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAu1tZGF0AAACrgYF//+q3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE1MiByMjg1NCBlOWE1OTAzIC0gSC4yNjQvTVBFRy00IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAxNyAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub3JnL3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTEgcmVmPTMgZGVibG9jaz0xOjA6MCBhbmFseXNlPTB4MzoweDExMyBtZT1oZXggc3VibWU9NyBwc3k9MSBwc3lfcmQ9MS4wMDowLjAwIG1peGVkX3JlZj0xIG1lX3JhbmdlPTE2IGNocm9tYV9tZT0xIHRyZWxsaXM9MSA4eDhkY3Q9MSBjcW09MCBkZWFkem9uZT0yMSwxMSBmYXN0X3Bza2lwPTEgY2hyb21hX3FwX29mZnNldD0tMiB0aHJlYWRzPTEgbG9va2FoZWFkX3RocmVhZHM9MSBzbGljZWRfdGhyZWFkcz0wIG5yPTAgZGVjaW1hdGU9MSBpbnRlcmxhY2VkPTAgYmx1cmF5X2NvbXBhdD0wIGNvbnN0cmFpbmVkX2ludHJhPTAgYmZyYW1lcz0zIGJfcHlyYW1pZD0yIGJfYWRhcHQ9MSBiX2JpYXM9MCBkaXJlY3Q9MSB3ZWlnaHRiPTEgb3Blbl9nb3A9MSB3ZWlnaHRwPTIga2V5aW50PTI1MCBrZXlpbnRfbWluPTI1IHNjZW5lY3V0PTQwIGludHJhX3JlZnJlc2g9MCByY19sb29rYWhlYWQ9NDAgcmM9Y3JmIG1idHJlZT0xIGNyZj0yMy4wIHFjb21wPTAuNjAgcXBtaW49MCBxcG1heD02OSBxcHN0ZXA9NCBpcF9yYXRpbz0xLjQwIGFxPTE6MS4wMACAAAAAbWWIhAAz//727L4FNf2f0JcRLMXaSnA+KqSAgHc0wAAAAwAAAwAAFgn0IAAnUAAAAwAAHiEcAAAAXBYAIcAAAAMAAAMAAAMAAAMANBAAAAMAAAMAAAMAAAMAAAMAVOAAAAMAAAMAAAMAAAMAAAMB4AAAAAH0pkbi6wdk';noSleepVideo.loop=true;document.body.appendChild(noSleepVideo)}try{await noSleepVideo.play()}catch(e){}}
+function releaseWakeLock(){if(wakeLock){try{wakeLock.release()}catch(e){}wakeLock=null}if(noSleepVideo){try{noSleepVideo.pause()}catch(e){}}}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&totalIv)requestWakeLock()});
 
-function showScreen(id){
-  ['readyScreen','exerciseScreen','restScreen','doneScreen'].forEach(s=>
-    document.getElementById(s).classList.toggle('active',s===id));
-  document.getElementById('progressBar').style.display=id==='readyScreen'?'none':'';
-}
+// Audio
+function unlockAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();if(!keepAlive){const buf=audioCtx.createBuffer(1,audioCtx.sampleRate,audioCtx.sampleRate);const d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=0.00001;keepAlive=audioCtx.createBufferSource();keepAlive.buffer=buf;keepAlive.loop=true;const g=audioCtx.createGain();g.gain.value=0.001;keepAlive.connect(g);g.connect(audioCtx.destination);keepAlive.start()}const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.frequency.value=440;g.gain.setValueAtTime(0.15,audioCtx.currentTime);g.gain.linearRampToValueAtTime(0,audioCtx.currentTime+0.08);o.start();o.stop(audioCtx.currentTime+0.08)}
+function playTone(f1,f2,dur,vol){if(!audioCtx)return;try{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.type='sine';o.frequency.setValueAtTime(f1,audioCtx.currentTime);o.frequency.linearRampToValueAtTime(f2,audioCtx.currentTime+dur);g.gain.setValueAtTime(vol,audioCtx.currentTime);g.gain.linearRampToValueAtTime(0,audioCtx.currentTime+dur);o.start(audioCtx.currentTime);o.stop(audioCtx.currentTime+dur)}catch(e){}}
+function toneDown(){playTone(480,300,0.2,0.5);try{navigator.vibrate?.(60)}catch(e){}}
+function toneUp(){playTone(600,950,0.15,0.45);try{navigator.vibrate?.(40)}catch(e){}}
+function toneCount(){playTone(700,700,0.06,0.3);setTimeout(()=>playTone(950,950,0.08,0.35),100)}
+function beep(f,d,v){playTone(f,f,d/1000,v)}
+function toneDone(){playTone(800,800,0.1,0.35);setTimeout(()=>playTone(1000,1000,0.1,0.35),120);setTimeout(()=>playTone(1300,1300,0.2,0.45),250);try{navigator.vibrate?.([80,40,80,40,150])}catch(e){}}
+
+// TTS
+function speak(text,rate){return new Promise(resolve=>{if(!window.speechSynthesis){resolve();return}speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='ko-KR';u.rate=rate||1;u.volume=1;const fb=setTimeout(resolve,Math.max(3000,text.length*200));u.onend=()=>{clearTimeout(fb);resolve()};u.onerror=()=>{clearTimeout(fb);resolve()};speechSynthesis.speak(u)})}
+
+function makeRing(id,sz){const sw=10,r=(sz-sw)/2,c=2*Math.PI*r;document.getElementById(id).innerHTML=`<svg width="${sz}" height="${sz}" style="transform:rotate(-90deg)"><circle cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="var(--border)" stroke-width="${sw}"/><circle id="${id}A" cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="var(--green)" stroke-width="${sw}" stroke-dasharray="${c}" stroke-dashoffset="${c}" stroke-linecap="round" style="transition:stroke-dashoffset .4s ease"/></svg><div class="ring-center"><div class="ring-big" id="${id}B">0</div><div class="ring-sub" id="${id}S"></div></div>`;return{c,a:()=>document.getElementById(id+'A'),b:()=>document.getElementById(id+'B'),s:()=>document.getElementById(id+'S'),set(p,col){const a=this.a();if(a){a.style.strokeDashoffset=this.c*(1-p);a.setAttribute('stroke',col)}}}}
+function showWScreen(id){['readyScreen','exerciseScreen','restScreen','doneScreen'].forEach(s=>document.getElementById(s).classList.toggle('active',s===id));document.getElementById('progressBar').style.display=id==='readyScreen'?'none':''}
 function updateProg(n){document.getElementById('progressFill').style.width=(n/TOTAL_SETS*100)+'%'}
-
-// Init ready list
-(function(){
-  const l=document.getElementById('readyList');
-  EX.forEach(e=>{const d=document.createElement('div');d.className='ex-card';
-    d.innerHTML=`<div class="emoji">${e.emoji}</div><div><div class="name">${e.name}</div>
-    <div class="detail">${e.type==='timed'?e.reps+'초':e.reps+'회'} × ${e.sets}세트 · ${e.target}</div></div>`;
-    l.appendChild(d)});
-})();
-
-// ═══════════════════════════════════
-// PAUSE
-// ═══════════════════════════════════
-function togglePause(){
-  paused=!paused;
-  const lb=paused?'▶ 계속':'⏸ 일시정지';
-  ['pauseBtn','restPauseBtn'].forEach(id=>{
-    const b=document.getElementById(id); b.textContent=lb; b.classList.toggle('active',paused);
-  });
-}
-
-// ═══════════════════════════════════
-// TIMER
-// ═══════════════════════════════════
+function togglePause(){paused=!paused;const lb=paused?'▶ 계속':'⏸ 일시정지';['pauseBtn','restPauseBtn'].forEach(id=>{const b=document.getElementById(id);b.textContent=lb;b.classList.toggle('active',paused)})}
 function startTotal(){stopTotal();totalSec=0;totalIv=setInterval(()=>{if(!paused)totalSec++;document.getElementById('totalTime').textContent=fmt(totalSec)},1000)}
 function stopTotal(){if(totalIv){clearInterval(totalIv);totalIv=null}}
 
-// ═══════════════════════════════════
-// COUNTDOWN
-// ═══════════════════════════════════
-async function countdown(myId){
-  const ov=document.getElementById('countdownOverlay'),num=document.getElementById('countdownNum');
-  ov.classList.add('active');
-  for(let t=3;t>0;t--){
-    if(!isRunning(myId)){ov.classList.remove('active');return}
-    num.textContent=t;num.style.animation='none';void num.offsetWidth;num.style.animation='countPop .4s ease';
-    beep(600+(3-t)*200,100,0.35);
-    await sleep(1000);
-  }
-  ov.classList.remove('active');
-  if(isRunning(myId)) beep(1000,200,0.45);
+// Init ready list
+(function(){const l=document.getElementById('readyList');EX.forEach(e=>{const d=document.createElement('div');d.className='ex-card';d.innerHTML=`<div class="emoji">${e.emoji}</div><div><div class="name">${e.name}</div><div class="detail">${e.type==='timed'?e.reps+'초':e.reps+'회'} × ${e.sets}세트 · ${e.target}</div></div>`;l.appendChild(d)})})();
+
+async function countdown(myId){const ov=document.getElementById('countdownOverlay'),num=document.getElementById('countdownNum');ov.classList.add('active');for(let t=3;t>0;t--){if(!isRunning(myId)){ov.classList.remove('active');return}num.textContent=t;num.style.animation='none';void num.offsetWidth;num.style.animation='countPop .4s ease';beep(600+(3-t)*200,100,0.35);await sleep(1000)}ov.classList.remove('active');if(isRunning(myId))beep(1000,200,0.45)}
+
+async function runReps(myId,ex,ring){const badge=document.getElementById('cmdBadge');for(let i=1;i<=ex.reps;i++){if(!isRunning(myId))break;await waitP(myId);if(!isRunning(myId))break;ring.set((i-.5)/ex.reps,'var(--blue)');ring.b().textContent=i-1;ring.b().style.color='var(--blue)';badge.style.display='';badge.className='cmd-badge cmd-down';badge.textContent='⬇ 내려가세요';badge.style.animation='none';void badge.offsetWidth;badge.style.animation='fadeSlide .3s ease';toneDown();await sleep(ex.downMs);if(!isRunning(myId))break;await waitP(myId);if(!isRunning(myId))break;ring.set(i/ex.reps,'var(--green)');ring.b().textContent=i;ring.b().style.color='var(--green)';badge.className='cmd-badge cmd-up';badge.textContent='⬆ 올라가세요';badge.style.animation='none';void badge.offsetWidth;badge.style.animation='fadeSlide .3s ease';toneUp();if(i%5===0||i===ex.reps)setTimeout(()=>{if(isRunning(myId))toneCount()},500);await sleep(ex.upMs);if(!isRunning(myId))break;await waitP(myId)}badge.style.display='none'}
+
+async function runTimed(myId,ex,ring){if(isRunning(myId))speak('시작',1);for(let t=ex.reps;t>0;t--){if(!isRunning(myId))break;await waitP(myId);if(!isRunning(myId))break;ring.b().textContent=t;ring.b().style.color='var(--blue)';ring.s().textContent='초 남음';ring.set(1-t/ex.reps,'var(--blue)');if(t===Math.floor(ex.reps/2))speak('절반 지났습니다. 힘내세요!',1);else if(t===10)speak('10초 남았습니다!',1);else if(t<=3)beep(600,80,0.25);await sleep(1000)}if(isRunning(myId))toneDone()}
+
+async function runRest(myId,dur,ring){if(isRunning(myId))speak('쉬세요',1);for(let t=dur;t>0;t--){if(!isRunning(myId))break;await waitP(myId);if(!isRunning(myId))break;ring.b().textContent=t;ring.set(1-t/dur,'var(--rest)');if(t===5)speak('5초 뒤 시작합니다',1);else if(t<=3)beep(500,60,0.2);await sleep(1000)}if(isRunning(myId))toneDone()}
+
+async function startWorkout(){sessionId++;const myId=sessionId;paused=false;skipped=false;unlockAudio();requestWakeLock();const w=new SpeechSynthesisUtterance(' ');w.volume=0;w.lang='ko-KR';speechSynthesis?.speak(w);await sleep(200);await speak('준비',1);if(!isAlive(myId))return;startTotal();const exR=makeRing('exRing',220),restR=makeRing('restRing',220);let done=0;for(let ei=0;ei<EX.length;ei++){const ex=EX[ei];for(let si=1;si<=ex.sets;si++){if(!isAlive(myId))return;skipped=false;showWScreen('exerciseScreen');document.getElementById('exEmoji').textContent=ex.emoji;document.getElementById('exName').textContent=ex.name;document.getElementById('exSet').textContent=`세트 ${si} / ${ex.sets}`;document.getElementById('exTip').textContent=ex.tip;document.getElementById('cmdBadge').style.display='none';exR.set(0,'var(--green)');exR.b().textContent='0';exR.s().textContent=ex.type==='timed'?'초 남음':`/ ${ex.reps}회`;updateProg(done);if(!skipped){await speak(`${ex.name}, ${si}세트 시작합니다`,1)}if(!isAlive(myId))return;if(!skipped){await countdown(myId)}if(!isAlive(myId))return;if(!skipped){if(ex.type==='reps')await runReps(myId,ex,exR);else await runTimed(myId,ex,exR)}if(!isAlive(myId))return;done++;updateProg(done);const lastS=si>=ex.sets,lastE=ei>=EX.length-1;if(lastS&&lastE){skipped=false;await speak('운동 완료! 수고했습니다!',1);if(isAlive(myId))showDone();return}skipped=false;const rd=lastS?90:ex.rest;showWScreen('restScreen');restR.set(0,'var(--rest)');restR.b().textContent=rd;restR.s().textContent='초';if(lastS){document.getElementById('nextName').textContent=`${EX[ei+1].emoji} ${EX[ei+1].name} · 세트 1`;if(!skipped)await speak(`${EX[ei+1].name}으로 넘어갑니다. ${rd}초 쉬세요`,1)}else{document.getElementById('nextName').textContent=`${ex.emoji} ${ex.name} · 세트 ${si+1}`;if(!skipped)await speak(`${si}세트 완료. ${rd}초 쉬세요`,1)}if(!isAlive(myId))return;await runRest(myId,rd,restR);if(!isAlive(myId))return}}}
+
+function showDone(){stopTotal();releaseWakeLock();showWScreen('doneScreen');document.getElementById('doneMsg').innerHTML=`총 소요 시간: ${fmt(totalSec)}<br>이제 러닝 나가자! 🏃‍♂️`;document.getElementById('totalTime').style.color='var(--green)';const g=document.getElementById('doneGrid');g.innerHTML='';EX.forEach(e=>{const d=document.createElement('div');d.className='done-card';d.innerHTML=`<div class="emoji">${e.emoji}</div><div class="check">✓ 완료</div><div class="sub">${e.type==='timed'?e.reps+'초':e.reps+'회'} × ${e.sets}세트</div>`;g.appendChild(d)})}
+
+function resetWorkout(){sessionId++;paused=false;skipped=false;speechSynthesis?.cancel();stopTotal();releaseWakeLock();totalSec=0;document.getElementById('totalTime').textContent='0:00';document.getElementById('totalTime').style.color='var(--dim)';document.getElementById('countdownOverlay').classList.remove('active');['pauseBtn','restPauseBtn'].forEach(id=>{const b=document.getElementById(id);b.textContent='⏸ 일시정지';b.classList.remove('active')});showWScreen('readyScreen')}
+
+// ════════════════════════════════════
+// DIET CHECKLIST
+// ════════════════════════════════════
+const DMEALS={
+  evening:[
+    {time:"09:00",title:"아침",items:[{name:"더단백 밀크티",kcal:98,pro:20,id:"e1"}]},
+    {time:"12:00",title:"점심",items:[{name:"닭가슴살 150g",kcal:165,pro:46,id:"e2"},{name:"알리오올리오 80g",kcal:330,pro:10,id:"e3"},{name:"삶은 계란 2개",kcal:156,pro:14,id:"e4"},{name:"양배추 샐러드 (시오콘부+참기름)",kcal:60,pro:1,id:"e5"}]},
+    {time:"15:30",title:"간식",items:[{name:"그릭요거트 150g",kcal:90,pro:10,id:"e6"},{name:"블루베리 한 줌 (50g)",kcal:30,pro:0,id:"e7"},{name:"아몬드 15~20알",kcal:100,pro:4,id:"e8"}]},
+    {time:"러닝 전",title:"운동 전",items:[{name:"바나나 1개",kcal:100,pro:1,id:"e9"}]},
+    {time:"러닝 후",title:"운동 후 저녁",items:[{name:"삶은 계란 3개",kcal:234,pro:21,id:"e10"},{name:"더단백 밀크티",kcal:98,pro:20,id:"e11"}]},
+  ],
+  night:[
+    {time:"09:00",title:"아침",items:[{name:"더단백 밀크티",kcal:98,pro:20,id:"n1"}]},
+    {time:"12:00",title:"점심",items:[{name:"닭가슴살 150g",kcal:165,pro:46,id:"n2"},{name:"알리오올리오 80g",kcal:330,pro:10,id:"n3"},{name:"삶은 계란 2개",kcal:156,pro:14,id:"n4"},{name:"양배추 샐러드 (시오콘부+참기름)",kcal:60,pro:1,id:"n5"}]},
+    {time:"15:30",title:"간식",items:[{name:"그릭요거트 150g",kcal:90,pro:10,id:"n6"},{name:"블루베리 한 줌 (50g)",kcal:30,pro:0,id:"n7"},{name:"아몬드 15~20알",kcal:100,pro:4,id:"n8"}]},
+    {time:"18:30",title:"저녁 (러닝 전)",items:[{name:"삶은 계란 3개",kcal:234,pro:21,id:"n9"},{name:"바나나 1개",kcal:100,pro:1,id:"n10"}]},
+    {time:"러닝 후",title:"운동 후",items:[{name:"더단백 밀크티",kcal:98,pro:20,id:"n11"}]},
+  ]
+};
+
+let dietTab='evening',dietChecked={};
+function todayStr(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
+function loadDiet(){try{const s=JSON.parse(localStorage.getItem('dietCheck')||'{}');if(s.date===todayStr()){dietChecked=s.checked||{};dietTab=s.tab||'evening'}else{dietChecked={};dietTab='evening'}}catch(e){dietChecked={}}}
+function saveDiet(){try{localStorage.setItem('dietCheck',JSON.stringify({date:todayStr(),checked:dietChecked,tab:dietTab}))}catch(e){}}
+
+function renderDiet(){
+  const meals=DMEALS[dietTab],list=document.getElementById('mealList');list.innerHTML='';
+  document.querySelectorAll('.d-tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&dietTab==='evening')||(i===1&&dietTab==='night')));
+  const d=new Date(),days=['일','월','화','수','목','금','토'];
+  document.getElementById('dateLabel').textContent=`${d.getMonth()+1}월 ${d.getDate()}일 (${days[d.getDay()]})`;
+  let tc=0,tp=0;
+  meals.forEach(meal=>{
+    const mc=meal.items.reduce((a,i)=>a+i.kcal,0);
+    const div=document.createElement('div');div.className='meal';
+    let ih='';
+    meal.items.forEach(item=>{
+      const ck=!!dietChecked[item.id];if(ck){tc+=item.kcal;tp+=item.pro}
+      ih+=`<div class="d-item ${ck?'checked':''}" onclick="toggleDiet('${item.id}')"><div class="d-checkbox">${ck?'✓':''}</div><div class="d-item-info"><div class="d-item-name">${item.name}</div><div class="d-item-detail"><span class="kcal">${item.kcal}kcal</span><span class="pro">단백질 ${item.pro}g</span></div></div></div>`});
+    div.innerHTML=`<div class="meal-header"><div class="meal-time">${meal.time}</div><div class="meal-title">${meal.title}</div><div class="meal-kcal">${mc}kcal</div></div>${ih}`;
+    list.appendChild(div)});
+  document.getElementById('totalCal').textContent=tc.toLocaleString();
+  document.getElementById('totalPro').textContent=tp;
+  document.getElementById('calBar').style.width=Math.min(100,tc/1461*100)+'%';
+  document.getElementById('proBar').style.width=Math.min(100,tp/147*100)+'%';
 }
+function toggleDiet(id){dietChecked[id]=!dietChecked[id];saveDiet();renderDiet()}
+function setDietTab(t){dietTab=t;saveDiet();renderDiet()}
+function resetDiet(){if(confirm('오늘 체크를 초기화할까요?')){dietChecked={};saveDiet();renderDiet()}}
+setInterval(()=>{try{const s=JSON.parse(localStorage.getItem('dietCheck')||'{}');if(s.date&&s.date!==todayStr()){dietChecked={};saveDiet();renderDiet()}}catch(e){}},60000);
 
-// ═══════════════════════════════════
-// REP EXERCISE
-// ═══════════════════════════════════
-async function runReps(myId, ex, ring){
-  const badge=document.getElementById('cmdBadge');
-  for(let i=1;i<=ex.reps;i++){
-    if(!isRunning(myId))break;
-    await waitP(myId); if(!isRunning(myId))break;
-
-    ring.set((i-.5)/ex.reps,'var(--blue)');
-    ring.b().textContent=i-1; ring.b().style.color='var(--blue)';
-    badge.style.display='';
-    badge.className='cmd-badge cmd-down'; badge.textContent='⬇ 내려가세요';
-    badge.style.animation='none'; void badge.offsetWidth; badge.style.animation='fadeSlide .3s ease';
-    toneDown();
-
-    await sleep(ex.downMs);
-    if(!isRunning(myId))break; await waitP(myId); if(!isRunning(myId))break;
-
-    ring.set(i/ex.reps,'var(--green)');
-    ring.b().textContent=i; ring.b().style.color='var(--green)';
-    badge.className='cmd-badge cmd-up'; badge.textContent='⬆ 올라가세요';
-    badge.style.animation='none'; void badge.offsetWidth; badge.style.animation='fadeSlide .3s ease';
-    toneUp();
-
-    if(i%5===0||i===ex.reps) setTimeout(()=>{if(isRunning(myId))toneCount()},500);
-
-    await sleep(ex.upMs);
-    if(!isRunning(myId))break; await waitP(myId);
-  }
-  badge.style.display='none';
-}
-
-// ═══════════════════════════════════
-// TIMED EXERCISE
-// ═══════════════════════════════════
-async function runTimed(myId, ex, ring){
-  if(isRunning(myId)) speak('시작',1);
-  for(let t=ex.reps;t>0;t--){
-    if(!isRunning(myId))break;
-    await waitP(myId); if(!isRunning(myId))break;
-    ring.b().textContent=t; ring.b().style.color='var(--blue)';
-    ring.s().textContent='초 남음';
-    ring.set(1-t/ex.reps,'var(--blue)');
-    if(t===Math.floor(ex.reps/2)) speak('절반 지났습니다. 힘내세요!',1);
-    else if(t===10) speak('10초 남았습니다!',1);
-    else if(t<=3) beep(600,80,0.25);
-    await sleep(1000);
-  }
-  if(isRunning(myId)) toneDone();
-}
-
-// ═══════════════════════════════════
-// REST
-// ═══════════════════════════════════
-async function runRest(myId, dur, ring){
-  if(isRunning(myId)) speak('쉬세요',1);
-  for(let t=dur;t>0;t--){
-    if(!isRunning(myId))break;
-    await waitP(myId); if(!isRunning(myId))break;
-    ring.b().textContent=t;
-    ring.set(1-t/dur,'var(--rest)');
-    if(t===5) speak('5초 뒤 시작합니다',1);
-    else if(t<=3) beep(500,60,0.2);
-    await sleep(1000);
-  }
-  if(isRunning(myId)) toneDone();
-}
-
-// ═══════════════════════════════════
-// MAIN LOOP
-// ═══════════════════════════════════
-async function startWorkout(){
-  sessionId++;
-  const myId=sessionId;
-  paused=false; skipped=false;
-
-  unlockAudio();
-  requestWakeLock();
-
-  const w=new SpeechSynthesisUtterance(' '); w.volume=0; w.lang='ko-KR';
-  speechSynthesis?.speak(w);
-  await sleep(200);
-
-  await speak('준비',1);
-  if(!isAlive(myId))return;
-
-  startTotal();
-  const exR=makeRing('exRing',220), restR=makeRing('restRing',220);
-  let done=0;
-
-  for(let ei=0;ei<EX.length;ei++){
-    const ex=EX[ei];
-    for(let si=1;si<=ex.sets;si++){
-      if(!isAlive(myId))return;
-      skipped=false;
-
-      // Setup exercise screen
-      showScreen('exerciseScreen');
-      document.getElementById('exEmoji').textContent=ex.emoji;
-      document.getElementById('exName').textContent=ex.name;
-      document.getElementById('exSet').textContent=`세트 ${si} / ${ex.sets}`;
-      document.getElementById('exTip').textContent=ex.tip;
-      document.getElementById('cmdBadge').style.display='none';
-      exR.set(0,'var(--green)'); exR.b().textContent='0';
-      exR.s().textContent=ex.type==='timed'?'초 남음':`/ ${ex.reps}회`;
-      updateProg(done);
-
-      // Announce + countdown (skippable)
-      if(!skipped){ await speak(`${ex.name}, ${si}세트 시작합니다`,1); }
-      if(!isAlive(myId))return;
-      if(!skipped){ await countdown(myId); }
-      if(!isAlive(myId))return;
-
-      // Run exercise (skippable)
-      if(!skipped){
-        if(ex.type==='reps') await runReps(myId,ex,exR);
-        else await runTimed(myId,ex,exR);
-      }
-      if(!isAlive(myId))return;
-
-      done++;
-      updateProg(done);
-
-      const lastS=si>=ex.sets, lastE=ei>=EX.length-1;
-      if(lastS&&lastE){
-        skipped=false;
-        await speak('운동 완료! 수고했습니다!',1);
-        if(isAlive(myId)) showDone();
-        return;
-      }
-
-      // Rest (skippable separately)
-      skipped=false;
-      const rd=lastS?90:ex.rest;
-      showScreen('restScreen');
-      restR.set(0,'var(--rest)'); restR.b().textContent=rd; restR.s().textContent='초';
-
-      if(lastS){
-        document.getElementById('nextName').textContent=`${EX[ei+1].emoji} ${EX[ei+1].name} · 세트 1`;
-        if(!skipped) await speak(`${EX[ei+1].name}으로 넘어갑니다. ${rd}초 쉬세요`,1);
-      }else{
-        document.getElementById('nextName').textContent=`${ex.emoji} ${ex.name} · 세트 ${si+1}`;
-        if(!skipped) await speak(`${si}세트 완료. ${rd}초 쉬세요`,1);
-      }
-      if(!isAlive(myId))return;
-
-      await runRest(myId, rd, restR);
-      if(!isAlive(myId))return;
-    }
-  }
-}
-
-// ═══════════════════════════════════
-// DONE / RESET
-// ═══════════════════════════════════
-function showDone(){
-  stopTotal(); releaseWakeLock();
-  showScreen('doneScreen');
-  document.getElementById('doneMsg').innerHTML=`총 소요 시간: ${fmt(totalSec)}<br>이제 러닝 나가자! 🏃‍♂️`;
-  document.getElementById('totalTime').style.color='var(--green)';
-  const g=document.getElementById('doneGrid'); g.innerHTML='';
-  EX.forEach(e=>{const d=document.createElement('div');d.className='done-card';
-    d.innerHTML=`<div class="emoji">${e.emoji}</div><div class="check">✓ 완료</div>
-    <div class="sub">${e.type==='timed'?e.reps+'초':e.reps+'회'} × ${e.sets}세트</div>`;
-    g.appendChild(d)});
-}
-
-function resetWorkout(){
-  sessionId++; paused=false; skipped=false;
-  speechSynthesis?.cancel(); stopTotal(); releaseWakeLock();
-  totalSec=0;
-  document.getElementById('totalTime').textContent='0:00';
-  document.getElementById('totalTime').style.color='var(--dim)';
-  document.getElementById('countdownOverlay').classList.remove('active');
-  ['pauseBtn','restPauseBtn'].forEach(id=>{
-    const b=document.getElementById(id); b.textContent='⏸ 일시정지'; b.classList.remove('active');
-  });
-  showScreen('readyScreen');
-}
+loadDiet();
 </script>
 </body>
 </html>

@@ -355,25 +355,41 @@ function loadRL(){try{runLogs=JSON.parse(localStorage.getItem('runLogs')||'[]')}
 function saveRL(){try{localStorage.setItem('runLogs',JSON.stringify(runLogs))}catch(e){}}
 
 function renderRunning(){
-  const now=new Date(),week=getWk(now),phase=getPhase(week),plan=WK[week]||["—","—","—"],dow=now.getDay();
+  const now=new Date(),rawWeek=getWk(now),dow=now.getDay();
+  // Clamp week: before start → show week 1 preview, after end → 26
+  const week=rawWeek<1?1:rawWeek>26?26:rawWeek;
+  const phase=getPhase(week),plan=WK[week]||["—","—","—"];
+  const daysUntilStart=Math.ceil((PLAN_START-now)/(1000*60*60*24));
   let h='';
-  h+=`<div class="d-header" style="width:100%;max-width:420px"><h2>🏃 러닝 훈련</h2><div class="date">${week>0&&week<=26?week+'주차 · '+phase.name:'훈련 기간 외'}</div></div>`;
 
-  // Week plan
-  if(week>=1&&week<=26){
-    h+=`<div style="padding:0 16px;width:100%;max-width:420px;margin-bottom:14px"><div style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden">`;
-    h+=`<div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:14px;font-weight:700">📅 이번 주 계획</div>`;
-    [{d:"화",i:0,n:2},{d:"목",i:1,n:4},{d:"토",i:2,n:6}].forEach(({d,i,n})=>{
-      const isT=dow===n;const shoe=getShoe(plan[i]);
-      h+=`<div style="padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.03);${isT?'background:rgba(255,107,53,.08)':''}">`;
-      h+=`<div style="width:28px;height:28px;border-radius:8px;background:${isT?'var(--accent)':'var(--border)'};color:${isT?'#fff':'var(--dim)'};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">${d}</div>`;
-      h+=`<div style="flex:1"><div style="font-size:13px;font-weight:600">${plan[i]}</div><div style="font-size:11px;color:var(--dim);margin-top:1px">👟 ${shoe}</div></div>`;
-      if(isT) h+=`<div style="font-size:10px;color:var(--accent);font-weight:700">TODAY</div>`;
-      h+=`</div>`;
-    });
-    h+=`</div></div>`;
+  // Header
+  if(rawWeek<1){
+    h+=`<div class="d-header" style="width:100%;max-width:420px"><h2>🏃 러닝 훈련</h2><div class="date">D-${daysUntilStart} · 6/15 시작</div></div>`;
+    h+=`<div style="padding:0 16px;width:100%;max-width:420px;margin-bottom:14px"><div style="background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(59,130,246,.03));border:1px solid rgba(59,130,246,.2);border-radius:16px;padding:16px;text-align:center">`;
+    h+=`<div style="font-size:14px;font-weight:700;margin-bottom:4px">🎯 연말 10km Sub-60 프로젝트</div>`;
+    h+=`<div style="font-size:12px;color:var(--dim);line-height:1.6">현재 64분 → 목표 60분 이내<br>26주 훈련 · 6/15(월) 시작</div></div></div>`;
+  } else if(rawWeek>26){
+    h+=`<div class="d-header" style="width:100%;max-width:420px"><h2>🏃 러닝 훈련</h2><div class="date">훈련 완료! 🎉</div></div>`;
+  } else {
+    h+=`<div class="d-header" style="width:100%;max-width:420px"><h2>🏃 러닝 훈련</h2><div class="date">${week}주차 · ${phase.name}</div></div>`;
+  }
 
-    // Today highlight
+  // Week plan (always show)
+  const weekLabel=rawWeek<1?'1주차 미리보기':'이번 주 계획';
+  h+=`<div style="padding:0 16px;width:100%;max-width:420px;margin-bottom:14px"><div style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden">`;
+  h+=`<div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:14px;font-weight:700">📅 ${weekLabel}</div>`;
+  [{d:"화",i:0,n:2},{d:"목",i:1,n:4},{d:"토",i:2,n:6}].forEach(({d,i,n})=>{
+    const isT=rawWeek>=1&&rawWeek<=26&&dow===n;const shoe=getShoe(plan[i]);
+    h+=`<div style="padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.03);${isT?'background:rgba(255,107,53,.08)':''}">`;
+    h+=`<div style="width:28px;height:28px;border-radius:8px;background:${isT?'var(--accent)':'var(--border)'};color:${isT?'#fff':'var(--dim)'};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">${d}</div>`;
+    h+=`<div style="flex:1"><div style="font-size:13px;font-weight:600">${plan[i]}</div><div style="font-size:11px;color:var(--dim);margin-top:1px">👟 ${shoe}</div></div>`;
+    if(isT) h+=`<div style="font-size:10px;color:var(--accent);font-weight:700">TODAY</div>`;
+    h+=`</div>`;
+  });
+  h+=`</div></div>`;
+
+  // Today highlight (only during active plan)
+  if(rawWeek>=1&&rawWeek<=26){
     const isTrainDay=[2,4,6].includes(dow);
     if(isTrainDay){
       const idx=dow===2?0:dow===4?1:2;
@@ -442,7 +458,7 @@ async function aiRun(){
     const d=await r.json();const txt=d.content?.map(c=>c.text||'').join('')||'분석 실패';
     res.innerHTML=`<div style="background:var(--card);border:1px solid var(--blue);border-radius:16px;padding:16px;margin-bottom:14px"><div style="font-size:12px;color:var(--blue);font-weight:700;margin-bottom:8px">🤖 AI 코치 분석</div><div style="font-size:13px;line-height:1.7;white-space:pre-wrap">${txt}</div></div>`;
   }catch(e){
-    res.innerHTML=`<div style="background:var(--card);border:1px solid #ef4444;border-radius:16px;padding:16px;margin-bottom:14px;font-size:13px;color:#ef4444">분석 중 오류 발생. 다시 시도해주세요.</div>`;
+    res.innerHTML=`<div style="background:var(--card);border:1px solid #ef4444;border-radius:16px;padding:16px;margin-bottom:14px"><div style="font-size:13px;color:#ef4444;font-weight:600;margin-bottom:6px">분석 실패</div><div style="font-size:12px;color:var(--dim);line-height:1.6">로컬 파일(file://)에서는 AI 분석이 안 돼요.<br>GitHub Pages에 올린 후 사용하세요!<br><br>배포: jacksonn1111-hub.github.io 레포에 이 파일을 업로드하면 됩니다.</div></div>`;
   }
   btn.textContent='🤖 AI 분석';btn.disabled=false;
 }

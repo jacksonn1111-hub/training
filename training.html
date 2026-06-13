@@ -84,7 +84,7 @@ input:focus{border-color:var(--accent)!important}
 .d-summary-card .bar-fill{height:100%;border-radius:2px;transition:width .4s ease}
 .bar-cal{background:var(--accent)}.bar-pro{background:var(--green)}
 .d-tabs{display:flex;gap:6px;padding:0 16px;margin-bottom:16px;width:100%;max-width:420px}
-.d-tab{flex:1;padding:10px 4px;font-size:13px;font-weight:600;text-align:center;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--dim);transition:all .2s}
+.d-tab{flex:1;padding:10px 2px;font-size:12px;font-weight:600;text-align:center;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--dim);transition:all .2s}
 .d-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 .meal{margin:0 16px 14px;background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;width:calc(100% - 32px);max-width:388px}
 .meal-header{padding:14px 16px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
@@ -169,7 +169,7 @@ input:focus{border-color:var(--accent)!important}
     <div class="d-summary-card"><div class="num cal" id="totalCal">0</div><div class="slabel">kcal / 1,461</div><div class="bar"><div class="bar-fill bar-cal" id="calBar" style="width:0%"></div></div></div>
     <div class="d-summary-card"><div class="num pro" id="totalPro">0</div><div class="slabel">단백질(g) / 147</div><div class="bar"><div class="bar-fill bar-pro" id="proBar" style="width:0%"></div></div></div>
   </div>
-  <div class="d-tabs"><div class="d-tab" onclick="setDietTab('morning')">🌅 아침 러닝</div><div class="d-tab active" onclick="setDietTab('evening')">🏃 저녁 러닝</div><div class="d-tab" onclick="setDietTab('night')">🌙 야간 러닝</div></div>
+  <div class="d-tabs"><div class="d-tab" onclick="setDietTab('morning')">🌅 아침런</div><div class="d-tab active" onclick="setDietTab('evening')">🏃 저녁런</div><div class="d-tab" onclick="setDietTab('night')">🌙 야간런</div><div class="d-tab" onclick="setDietTab('rest')">🏋️ 홈트</div></div>
   <div id="mealList" style="width:100%;max-width:420px"></div>
   <div id="dietCalendar" style="width:100%;max-width:420px"></div>
   <div class="d-note"><div class="nlabel">💡 팁</div><div class="nbody">파스타에 새우/브로콜리 추가 → 단백질↑. 더단백 하루 2병 챙기기! 양배추는 양 늘려도 OK.</div></div>
@@ -293,6 +293,13 @@ const DMEALS={
     {time:"15:30",title:"간식",items:[{name:"그릭요거트 150g",kcal:90,pro:10,id:"n6"},{name:"블루베리 한 줌 (50g)",kcal:30,pro:0,id:"n7"},{name:"아몬드 15~20알",kcal:100,pro:4,id:"n8"}]},
     {time:"18:30",title:"저녁 (러닝 전)",items:[{name:"삶은 계란 3개",kcal:234,pro:21,id:"n9"},{name:"바나나 1개",kcal:100,pro:1,id:"n10"}]},
     {time:"러닝 후",title:"운동 후",items:[{name:"더단백 밀크티",kcal:98,pro:20,id:"n11"}]},
+  ],
+  rest:[
+    {time:"09:00",title:"아침",items:[{name:"더단백 밀크티",kcal:98,pro:20,id:"r1"}]},
+    {time:"10:30",title:"오전 간식",items:[{name:"삶은 계란 2개",kcal:156,pro:14,id:"r2"}]},
+    {time:"12:00",title:"점심",items:[{name:"닭가슴살 150g",kcal:165,pro:46,id:"r3"},{name:"알리오올리오 80g",kcal:330,pro:10,id:"r4"},{name:"양배추 샐러드 (시오콘부+참기름)",kcal:60,pro:1,id:"r5"}]},
+    {time:"15:30",title:"간식",items:[{name:"그릭요거트 150g",kcal:90,pro:10,id:"r6"},{name:"블루베리 한 줌 (50g)",kcal:30,pro:0,id:"r7"},{name:"아몬드 15~20알",kcal:100,pro:4,id:"r8"}]},
+    {time:"18:30",title:"저녁",items:[{name:"삶은 계란 2개",kcal:156,pro:14,id:"r9"},{name:"더단백 밀크티",kcal:98,pro:20,id:"r10"}]},
   ]
 };
 
@@ -373,7 +380,7 @@ function renderCalendar(){
 
 function renderDiet(){
   const meals=DMEALS[dietTab],list=document.getElementById('mealList');list.innerHTML='';
-  document.querySelectorAll('.d-tab').forEach((t,i)=>{const tabs=['morning','evening','night'];t.classList.toggle('active',tabs[i]===dietTab)});
+  document.querySelectorAll('.d-tab').forEach((t,i)=>{const tabs=['morning','evening','night','rest'];t.classList.toggle('active',tabs[i]===dietTab)});
   const d=new Date(),days=['일','월','화','수','목','금','토'];
   document.getElementById('dateLabel').textContent=`${d.getMonth()+1}월 ${d.getDate()}일 (${days[d.getDay()]})`;
   let tc=0,tp=0;
@@ -386,10 +393,14 @@ function renderDiet(){
       ih+=`<div class="d-item ${ck?'checked':''}" onclick="toggleDiet('${item.id}')"><div class="d-checkbox">${ck?'✓':''}</div><div class="d-item-info"><div class="d-item-name">${item.name}</div><div class="d-item-detail"><span class="kcal">${item.kcal}kcal</span><span class="pro">단백질 ${item.pro}g</span></div></div></div>`});
     div.innerHTML=`<div class="meal-header"><div class="meal-time">${meal.time}</div><div class="meal-title">${meal.title}</div><div class="meal-kcal">${mc}kcal</div></div>${ih}`;
     list.appendChild(div)});
+  const targetCal=dietTab==='rest'?1283:1461;
+  const targetPro=dietTab==='rest'?139:147;
   document.getElementById('totalCal').textContent=tc.toLocaleString();
   document.getElementById('totalPro').textContent=tp;
-  document.getElementById('calBar').style.width=Math.min(100,tc/1461*100)+'%';
-  document.getElementById('proBar').style.width=Math.min(100,tp/147*100)+'%';
+  document.getElementById('calBar').style.width=Math.min(100,tc/targetCal*100)+'%';
+  document.getElementById('proBar').style.width=Math.min(100,tp/targetPro*100)+'%';
+  document.querySelector('#totalCal').parentElement.querySelector('.slabel').textContent=`kcal / ${targetCal.toLocaleString()}`;
+  document.querySelector('#totalPro').parentElement.querySelector('.slabel').textContent=`단백질(g) / ${targetPro}`;
   renderCalendar();
 }
 function toggleDiet(id){dietChecked[id]=!dietChecked[id];saveDiet();renderDiet()}

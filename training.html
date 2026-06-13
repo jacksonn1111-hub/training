@@ -171,6 +171,7 @@ input:focus{border-color:var(--accent)!important}
   </div>
   <div class="d-tabs"><div class="d-tab" onclick="setDietTab('morning')">🌅 아침 러닝</div><div class="d-tab active" onclick="setDietTab('evening')">🏃 저녁 러닝</div><div class="d-tab" onclick="setDietTab('night')">🌙 야간 러닝</div></div>
   <div id="mealList" style="width:100%;max-width:420px"></div>
+  <div id="dietCalendar" style="width:100%;max-width:420px"></div>
   <div class="d-note"><div class="nlabel">💡 팁</div><div class="nbody">파스타에 새우/브로콜리 추가 → 단백질↑. 더단백 하루 2병 챙기기! 양배추는 양 늘려도 OK.</div></div>
   <button class="d-reset" onclick="resetDiet()">↻ 체크 초기화</button>
 </div>
@@ -298,7 +299,77 @@ const DMEALS={
 let dietTab='evening',dietChecked={};
 function todayStr(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
 function loadDiet(){try{const s=JSON.parse(localStorage.getItem('dietCheck')||'{}');if(s.date===todayStr()){dietChecked=s.checked||{};dietTab=s.tab||'evening'}else{dietChecked={};dietTab='evening'}}catch(e){dietChecked={}}}
-function saveDiet(){try{localStorage.setItem('dietCheck',JSON.stringify({date:todayStr(),checked:dietChecked,tab:dietTab}))}catch(e){}}
+function saveDiet(){
+  try{localStorage.setItem('dietCheck',JSON.stringify({date:todayStr(),checked:dietChecked,tab:dietTab}))}catch(e){}
+  // Save daily history
+  try{
+    const meals=DMEALS[dietTab];
+    const allItems=meals.flatMap(m=>m.items);
+    const checkedCount=allItems.filter(i=>!!dietChecked[i.id]).length;
+    const hist=JSON.parse(localStorage.getItem('dietHist')||'{}');
+    hist[todayStr()]={c:checkedCount,t:allItems.length,pct:Math.round(checkedCount/allItems.length*100)};
+    localStorage.setItem('dietHist',JSON.stringify(hist));
+  }catch(e){}
+}
+
+function renderCalendar(){
+  const hist=JSON.parse(localStorage.getItem('dietHist')||'{}');
+  const now=new Date(),yr=now.getFullYear(),mo=now.getMonth();
+  const firstDay=new Date(yr,mo,1).getDay();
+  const daysInMonth=new Date(yr,mo+1,0).getDate();
+  const today=now.getDate();
+  const monthNames=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+
+  // Calculate streak
+  let streak=0;
+  for(let d=0;d<60;d++){
+    const check=new Date(yr,mo,today-d);
+    const key=check.getFullYear()+'-'+(check.getMonth()+1)+'-'+check.getDate();
+    if(hist[key]&&hist[key].pct>=70) streak++;
+    else if(d>0) break;
+  }
+
+  let h=`<div style="padding:0 16px;margin-bottom:14px"><div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px">`;
+  h+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">`;
+  h+=`<div style="font-size:14px;font-weight:700">📅 ${monthNames[mo]} 식단 기록</div>`;
+  if(streak>0) h+=`<div style="font-size:12px;color:var(--accent);font-weight:700">🔥 ${streak}일 연속!</div>`;
+  h+=`</div>`;
+
+  // Day headers
+  h+=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;margin-bottom:6px">`;
+  ['일','월','화','수','목','금','토'].forEach(d=>{
+    h+=`<div style="font-size:10px;color:var(--dim);font-weight:600">${d}</div>`;
+  });
+  h+=`</div>`;
+
+  // Calendar grid
+  h+=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center">`;
+  for(let i=0;i<firstDay;i++) h+=`<div></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const key=yr+'-'+(mo+1)+'-'+d;
+    const data=hist[key];
+    const isToday=d===today;
+    let bg='transparent',color='var(--dim)';
+    if(data){
+      if(data.pct>=80){bg='var(--green)';color='#fff'}
+      else if(data.pct>=50){bg='rgba(34,197,94,.3)';color='var(--green)'}
+      else if(data.pct>0){bg='rgba(255,107,53,.2)';color='var(--accent)'}
+    }
+    const border=isToday?'2px solid var(--accent)':'2px solid transparent';
+    h+=`<div style="width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:8px;background:${bg};color:${color};font-size:11px;font-weight:${isToday?'800':'500'};border:${border}">${d}</div>`;
+  }
+  h+=`</div>`;
+
+  // Legend
+  h+=`<div style="display:flex;gap:12px;margin-top:10px;justify-content:center">`;
+  h+=`<div style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:10px;border-radius:3px;background:var(--green)"></div><span style="font-size:10px;color:var(--dim)">80%+</span></div>`;
+  h+=`<div style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:10px;border-radius:3px;background:rgba(34,197,94,.3)"></div><span style="font-size:10px;color:var(--dim)">50%+</span></div>`;
+  h+=`<div style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:10px;border-radius:3px;background:rgba(255,107,53,.2)"></div><span style="font-size:10px;color:var(--dim)">시작</span></div>`;
+  h+=`</div>`;
+  h+=`</div></div>`;
+
+  document.getElementById('dietCalendar').innerHTML=h;
+}
 
 function renderDiet(){
   const meals=DMEALS[dietTab],list=document.getElementById('mealList');list.innerHTML='';
@@ -319,6 +390,7 @@ function renderDiet(){
   document.getElementById('totalPro').textContent=tp;
   document.getElementById('calBar').style.width=Math.min(100,tc/1461*100)+'%';
   document.getElementById('proBar').style.width=Math.min(100,tp/147*100)+'%';
+  renderCalendar();
 }
 function toggleDiet(id){dietChecked[id]=!dietChecked[id];saveDiet();renderDiet()}
 function setDietTab(t){dietTab=t;saveDiet();renderDiet()}

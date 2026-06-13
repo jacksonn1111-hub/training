@@ -308,74 +308,150 @@ function todayStr(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+
 function loadDiet(){try{const s=JSON.parse(localStorage.getItem('dietCheck')||'{}');if(s.date===todayStr()){dietChecked=s.checked||{};dietTab=s.tab||'evening'}else{dietChecked={};dietTab='evening'}}catch(e){dietChecked={}}}
 function saveDiet(){
   try{localStorage.setItem('dietCheck',JSON.stringify({date:todayStr(),checked:dietChecked,tab:dietTab}))}catch(e){}
-  // Save daily history
   try{
-    const meals=DMEALS[dietTab];
-    const allItems=meals.flatMap(m=>m.items);
-    const checkedCount=allItems.filter(i=>!!dietChecked[i.id]).length;
+    const meals=DMEALS[dietTab];const allItems=meals.flatMap(m=>m.items);
+    const checked=allItems.filter(i=>!!dietChecked[i.id]);
+    const cal=checked.reduce((a,i)=>a+i.kcal,0);
+    const pro=checked.reduce((a,i)=>a+i.pro,0);
     const hist=JSON.parse(localStorage.getItem('dietHist')||'{}');
-    hist[todayStr()]={c:checkedCount,t:allItems.length,pct:Math.round(checkedCount/allItems.length*100)};
+    hist[todayStr()]={c:checked.length,t:allItems.length,pct:Math.round(checked.length/allItems.length*100),cal,pro,items:checked.map(i=>i.name)};
     localStorage.setItem('dietHist',JSON.stringify(hist));
   }catch(e){}
 }
 
+let calViewYear,calViewMonth;
+(function(){const n=new Date();calViewYear=n.getFullYear();calViewMonth=n.getMonth()})();
+
 function renderCalendar(){
   const hist=JSON.parse(localStorage.getItem('dietHist')||'{}');
-  const now=new Date(),yr=now.getFullYear(),mo=now.getMonth();
+  const now=new Date(),todayD=now.getDate(),todayM=now.getMonth(),todayY=now.getFullYear();
+  const yr=calViewYear,mo=calViewMonth;
   const firstDay=new Date(yr,mo,1).getDay();
-  const daysInMonth=new Date(yr,mo+1,0).getDate();
-  const today=now.getDate();
-  const monthNames=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  const dim=new Date(yr,mo+1,0).getDate();
+  const mNames=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  const isCurrentMonth=yr===todayY&&mo===todayM;
 
-  // Calculate streak
+  // Streak
   let streak=0;
-  for(let d=0;d<60;d++){
-    const check=new Date(yr,mo,today-d);
-    const key=check.getFullYear()+'-'+(check.getMonth()+1)+'-'+check.getDate();
-    if(hist[key]&&hist[key].pct>=70) streak++;
-    else if(d>0) break;
+  for(let d=0;d<90;d++){
+    const ck=new Date(todayY,todayM,todayD-d);
+    const k=ck.getFullYear()+'-'+(ck.getMonth()+1)+'-'+ck.getDate();
+    if(hist[k]&&hist[k].pct>=70)streak++;else if(d>0)break;
+  }
+
+  // Monthly stats
+  let mDays=0,mCal=0,mPro=0,mPct=0;
+  for(let d=1;d<=dim;d++){
+    const k=yr+'-'+(mo+1)+'-'+d;
+    if(hist[k]){mDays++;mCal+=hist[k].cal||0;mPro+=hist[k].pro||0;mPct+=hist[k].pct||0;}
+  }
+  const avgPct=mDays?Math.round(mPct/mDays):0;
+
+  // Weekly stats (current week)
+  const weekStart=new Date(now);weekStart.setDate(todayD-now.getDay());
+  let wDays=0,wCal=0,wPro=0;
+  for(let d=0;d<7;d++){
+    const wd=new Date(weekStart);wd.setDate(weekStart.getDate()+d);
+    const k=wd.getFullYear()+'-'+(wd.getMonth()+1)+'-'+wd.getDate();
+    if(hist[k]){wDays++;wCal+=hist[k].cal||0;wPro+=hist[k].pro||0;}
   }
 
   let h=`<div style="padding:0 16px;margin-bottom:14px"><div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px">`;
+
+  // Header with nav
   h+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">`;
-  h+=`<div style="font-size:14px;font-weight:700">📅 ${monthNames[mo]} 식단 기록</div>`;
-  if(streak>0) h+=`<div style="font-size:12px;color:var(--accent);font-weight:700">🔥 ${streak}일 연속!</div>`;
+  h+=`<button onclick="calNav(-1)" style="background:none;color:var(--dim);font-size:18px;padding:4px 10px">‹</button>`;
+  h+=`<div style="text-align:center"><div style="font-size:14px;font-weight:700">📅 ${yr}년 ${mNames[mo]}</div>`;
+  if(streak>0&&isCurrentMonth)h+=`<div style="font-size:11px;color:var(--accent);margin-top:2px">🔥 ${streak}일 연속!</div>`;
+  h+=`</div>`;
+  const canNext=yr<todayY||(yr===todayY&&mo<todayM);
+  h+=`<button onclick="calNav(1)" style="background:none;color:${canNext?'var(--dim)':'transparent'};font-size:18px;padding:4px 10px"${canNext?'':' disabled'}>›</button>`;
   h+=`</div>`;
 
   // Day headers
-  h+=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;margin-bottom:6px">`;
-  ['일','월','화','수','목','금','토'].forEach(d=>{
-    h+=`<div style="font-size:10px;color:var(--dim);font-weight:600">${d}</div>`;
-  });
+  h+=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center;margin-bottom:4px">`;
+  ['일','월','화','수','목','금','토'].forEach(d=>h+=`<div style="font-size:10px;color:var(--dim);font-weight:600">${d}</div>`);
   h+=`</div>`;
 
   // Calendar grid
-  h+=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center">`;
-  for(let i=0;i<firstDay;i++) h+=`<div></div>`;
-  for(let d=1;d<=daysInMonth;d++){
-    const key=yr+'-'+(mo+1)+'-'+d;
-    const data=hist[key];
-    const isToday=d===today;
+  h+=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center">`;
+  for(let i=0;i<firstDay;i++)h+=`<div></div>`;
+  for(let d=1;d<=dim;d++){
+    const k=yr+'-'+(mo+1)+'-'+d;const data=hist[k];
+    const isT=isCurrentMonth&&d===todayD;
     let bg='transparent',color='var(--dim)';
     if(data){
       if(data.pct>=80){bg='var(--green)';color='#fff'}
       else if(data.pct>=50){bg='rgba(34,197,94,.3)';color='var(--green)'}
       else if(data.pct>0){bg='rgba(255,107,53,.2)';color='var(--accent)'}
     }
-    const border=isToday?'2px solid var(--accent)':'2px solid transparent';
-    h+=`<div style="width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:8px;background:${bg};color:${color};font-size:11px;font-weight:${isToday?'800':'500'};border:${border}">${d}</div>`;
+    h+=`<div onclick="showDayDetail('${k}')" style="width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:8px;background:${bg};color:${color};font-size:11px;font-weight:${isT?'800':'500'};border:${isT?'2px solid var(--accent)':'2px solid transparent'};cursor:pointer">${d}</div>`;
   }
   h+=`</div>`;
 
   // Legend
-  h+=`<div style="display:flex;gap:12px;margin-top:10px;justify-content:center">`;
-  h+=`<div style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:10px;border-radius:3px;background:var(--green)"></div><span style="font-size:10px;color:var(--dim)">80%+</span></div>`;
-  h+=`<div style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:10px;border-radius:3px;background:rgba(34,197,94,.3)"></div><span style="font-size:10px;color:var(--dim)">50%+</span></div>`;
-  h+=`<div style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:10px;border-radius:3px;background:rgba(255,107,53,.2)"></div><span style="font-size:10px;color:var(--dim)">시작</span></div>`;
+  h+=`<div style="display:flex;gap:10px;margin-top:8px;justify-content:center">`;
+  h+=`<div style="display:flex;align-items:center;gap:3px"><div style="width:8px;height:8px;border-radius:2px;background:var(--green)"></div><span style="font-size:9px;color:var(--dim)">80%+</span></div>`;
+  h+=`<div style="display:flex;align-items:center;gap:3px"><div style="width:8px;height:8px;border-radius:2px;background:rgba(34,197,94,.3)"></div><span style="font-size:9px;color:var(--dim)">50%+</span></div>`;
+  h+=`<div style="display:flex;align-items:center;gap:3px"><div style="width:8px;height:8px;border-radius:2px;background:rgba(255,107,53,.2)"></div><span style="font-size:9px;color:var(--dim)">시작</span></div>`;
   h+=`</div>`;
+
+  // Day detail popup
+  h+=`<div id="dayDetail" style="display:none;margin-top:10px;background:var(--bg);border-radius:10px;padding:12px"></div>`;
+
   h+=`</div></div>`;
 
+  // Monthly & Weekly stats
+  h+=`<div style="padding:0 16px;margin-bottom:14px"><div style="display:flex;gap:8px">`;
+  // This week
+  h+=`<div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px;text-align:center">`;
+  h+=`<div style="font-size:10px;color:var(--dim);font-weight:600;margin-bottom:6px">📊 이번 주</div>`;
+  h+=`<div style="font-size:13px;font-weight:700;color:var(--accent)">${wCal.toLocaleString()} kcal</div>`;
+  h+=`<div style="font-size:11px;color:var(--green);margin-top:2px">단백질 ${wPro}g</div>`;
+  h+=`<div style="font-size:10px;color:var(--dim);margin-top:2px">${wDays}일 기록</div>`;
+  h+=`</div>`;
+  // This month
+  h+=`<div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px;text-align:center">`;
+  h+=`<div style="font-size:10px;color:var(--dim);font-weight:600;margin-bottom:6px">📊 ${mNames[mo]}</div>`;
+  h+=`<div style="font-size:13px;font-weight:700;color:var(--accent)">${mCal.toLocaleString()} kcal</div>`;
+  h+=`<div style="font-size:11px;color:var(--green);margin-top:2px">단백질 ${mPro}g</div>`;
+  h+=`<div style="font-size:10px;color:var(--dim);margin-top:2px">${mDays}일 기록 · 평균 ${avgPct}%</div>`;
+  h+=`</div></div></div>`;
+
   document.getElementById('dietCalendar').innerHTML=h;
+}
+
+function calNav(dir){
+  calViewMonth+=dir;
+  if(calViewMonth>11){calViewMonth=0;calViewYear++}
+  if(calViewMonth<0){calViewMonth=11;calViewYear--}
+  // Don't go past current month
+  const n=new Date();
+  if(calViewYear>n.getFullYear()||(calViewYear===n.getFullYear()&&calViewMonth>n.getMonth())){
+    calViewYear=n.getFullYear();calViewMonth=n.getMonth();
+  }
+  renderCalendar();
+}
+
+function showDayDetail(key){
+  const hist=JSON.parse(localStorage.getItem('dietHist')||'{}');
+  const el=document.getElementById('dayDetail');
+  const data=hist[key];
+  if(!data){el.style.display='none';return}
+  const parts=key.split('-');
+  el.style.display='block';
+  let h=`<div style="font-size:12px;font-weight:700;margin-bottom:6px">${parts[1]}/${parts[2]} 식단 기록</div>`;
+  h+=`<div style="display:flex;gap:12px;margin-bottom:8px">`;
+  h+=`<span style="font-size:12px;color:var(--accent)">${data.cal||0} kcal</span>`;
+  h+=`<span style="font-size:12px;color:var(--green)">단백질 ${data.pro||0}g</span>`;
+  h+=`<span style="font-size:12px;color:var(--dim)">${data.c}/${data.t} 체크 (${data.pct}%)</span>`;
+  h+=`</div>`;
+  if(data.items&&data.items.length>0){
+    h+=`<div style="font-size:11px;color:var(--dim);line-height:1.6">`;
+    data.items.forEach(i=>h+=`✓ ${i}<br>`);
+    h+=`</div>`;
+  }
+  el.innerHTML=h;
 }
 
 function renderDiet(){

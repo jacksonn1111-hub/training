@@ -279,14 +279,16 @@ const DMEALS={
   ],
   evening:[
     {time:"09:00",title:"아침",items:[{name:"더단백 밀크티",kcal:98,pro:20,id:"e1"}]},
-    {time:"12:00",title:"점심",items:[{name:"닭가슴살 150g",kcal:165,pro:46,id:"e2"},{name:"알리오올리오 80g",kcal:330,pro:10,id:"e3"},{name:"삶은 계란 2개",kcal:156,pro:14,id:"e4"},{name:"양배추 샐러드 (시오콘부+참기름)",kcal:60,pro:1,id:"e5"}]},
+    {time:"10:30",title:"오전 간식",items:[{name:"삶은 계란 2개",kcal:156,pro:14,id:"e4"}]},
+    {time:"12:00",title:"점심",items:[{name:"닭가슴살 150g",kcal:165,pro:46,id:"e2"},{name:"알리오올리오 80g",kcal:330,pro:10,id:"e3"},{name:"양배추 샐러드 (시오콘부+참기름)",kcal:60,pro:1,id:"e5"}]},
     {time:"15:30",title:"간식",items:[{name:"그릭요거트 150g",kcal:90,pro:10,id:"e6"},{name:"블루베리 한 줌 (50g)",kcal:30,pro:0,id:"e7"},{name:"아몬드 15~20알",kcal:100,pro:4,id:"e8"}]},
     {time:"러닝 전",title:"운동 전",items:[{name:"바나나 1개",kcal:100,pro:1,id:"e9"}]},
     {time:"러닝 후",title:"운동 후 저녁",items:[{name:"삶은 계란 3개",kcal:234,pro:21,id:"e10"},{name:"더단백 밀크티",kcal:98,pro:20,id:"e11"}]},
   ],
   night:[
     {time:"09:00",title:"아침",items:[{name:"더단백 밀크티",kcal:98,pro:20,id:"n1"}]},
-    {time:"12:00",title:"점심",items:[{name:"닭가슴살 150g",kcal:165,pro:46,id:"n2"},{name:"알리오올리오 80g",kcal:330,pro:10,id:"n3"},{name:"삶은 계란 2개",kcal:156,pro:14,id:"n4"},{name:"양배추 샐러드 (시오콘부+참기름)",kcal:60,pro:1,id:"n5"}]},
+    {time:"10:30",title:"오전 간식",items:[{name:"삶은 계란 2개",kcal:156,pro:14,id:"n4"}]},
+    {time:"12:00",title:"점심",items:[{name:"닭가슴살 150g",kcal:165,pro:46,id:"n2"},{name:"알리오올리오 80g",kcal:330,pro:10,id:"n3"},{name:"양배추 샐러드 (시오콘부+참기름)",kcal:60,pro:1,id:"n5"}]},
     {time:"15:30",title:"간식",items:[{name:"그릭요거트 150g",kcal:90,pro:10,id:"n6"},{name:"블루베리 한 줌 (50g)",kcal:30,pro:0,id:"n7"},{name:"아몬드 15~20알",kcal:100,pro:4,id:"n8"}]},
     {time:"18:30",title:"저녁 (러닝 전)",items:[{name:"삶은 계란 3개",kcal:234,pro:21,id:"n9"},{name:"바나나 1개",kcal:100,pro:1,id:"n10"}]},
     {time:"러닝 후",title:"운동 후",items:[{name:"더단백 밀크티",kcal:98,pro:20,id:"n11"}]},
@@ -412,7 +414,7 @@ function renderRunning(){
   h+=`<div style="flex:1"><div style="font-size:11px;color:var(--dim);margin-bottom:4px">시간 (분:초)</div><input id="logTime" type="text" placeholder="32:00" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:16px;font-weight:600"></div>`;
   h+=`</div><div style="display:flex;gap:8px">`;
   h+=`<button onclick="addLog()" style="flex:1;padding:12px;font-size:14px;font-weight:600;background:var(--green);color:#fff;border-radius:12px">저장 ✓</button>`;
-  h+=`<button id="aiBtn" onclick="aiRun()" style="flex:1;padding:12px;font-size:14px;font-weight:600;background:var(--blue);color:#fff;border-radius:12px">🤖 AI 분석</button>`;
+  h+=`<button id="aiBtn" onclick="copyPrompt()" style="flex:1;padding:12px;font-size:14px;font-weight:600;background:var(--blue);color:#fff;border-radius:12px">📋 AI 프롬프트 복사</button>`;
   h+=`</div></div></div>`;
 
   h+=`<div id="aiRes" style="padding:0 16px;width:100%;max-width:420px;display:none"></div>`;
@@ -421,13 +423,16 @@ function renderRunning(){
   if(runLogs.length>0){
     h+=`<div style="padding:0 16px;width:100%;max-width:420px;margin-bottom:14px"><div style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden">`;
     h+=`<div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between"><div style="font-size:14px;font-weight:700">📋 최근 기록</div><button onclick="clrLogs()" style="font-size:11px;color:var(--dim);background:none;padding:4px 8px">초기화</button></div>`;
-    runLogs.slice(-10).reverse().forEach(l=>{
+    runLogs.slice(-10).reverse().forEach((l,ri)=>{
+      const origIdx=runLogs.length-1-ri;
       const p=l.time&&l.dist?l.time/l.dist:0;const pm=Math.floor(p);const ps=Math.round((p-pm)*60).toString().padStart(2,'0');
-      h+=`<div style="padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.03)">`;
-      h+=`<div style="font-size:11px;color:var(--dim);width:46px;flex-shrink:0">${l.date.slice(5)}</div>`;
+      h+=`<div style="padding:10px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,.03)">`;
+      h+=`<div style="font-size:11px;color:var(--dim);width:42px;flex-shrink:0">${l.date.slice(5)}</div>`;
       h+=`<div style="flex:1;font-size:13px;font-weight:600">${l.dist}km</div>`;
       h+=`<div style="font-size:12px;color:var(--accent)">${l.ts||'—'}</div>`;
-      h+=`<div style="font-size:11px;color:var(--green)">${p?pm+"'"+ps+'"/km':'—'}</div></div>`;
+      h+=`<div style="font-size:11px;color:var(--green);width:58px;text-align:right">${p?pm+"'"+ps+'"/km':'—'}</div>`;
+      h+=`<button onclick="delLog(${origIdx})" style="background:none;color:var(--dim);font-size:14px;padding:2px 6px;flex-shrink:0">✕</button>`;
+      h+=`</div>`;
     });
     h+=`</div></div>`;
   }
@@ -443,24 +448,41 @@ function addLog(){
   runLogs.push({date:ds,dist,time:tm,ts,week:getWk(n)});
   saveRL();renderRunning();
 }
-function clrLogs(){if(confirm('기록을 초기화할까요?')){runLogs=[];saveRL();renderRunning()}}
+function clrLogs(){if(confirm('기록을 전부 초기화할까요?')){runLogs=[];saveRL();renderRunning()}}
+function delLog(idx){runLogs.splice(idx,1);saveRL();renderRunning()}
 
-async function aiRun(){
-  const btn=document.getElementById('aiBtn'),res=document.getElementById('aiRes');
+function copyPrompt(){
   if(runLogs.length<1){alert('운동 기록을 먼저 입력하세요');return}
-  btn.textContent='분석 중...';btn.disabled=true;
-  res.style.display='block';res.innerHTML='<div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;text-align:center;color:var(--dim);margin-bottom:14px">🤖 AI가 분석 중...</div>';
-  const w=getWk(new Date()),ph=getPhase(w),pl=WK[w];
+  const w=getWk(new Date()),cw=w<1?1:w,ph=getPhase(cw),pl=WK[cw];
   const lt=runLogs.slice(-14).map(l=>`${l.date}: ${l.dist}km, ${l.ts||'시간미입력'}, 페이스 ${l.time&&l.dist?(l.time/l.dist).toFixed(2):'?'}분/km`).join('\n');
-  const prompt=`러닝 코치로서 한국어로 짧고 실용적 피드백을 주세요.\n선수: 남성 174cm 77kg, 마운자로 복용, 러닝 2개월차\n목표: 연말 10km 대회 sub-60 (현재 64분, 페이스 6:25/km)\n현재: ${w}주차 (${ph.name})\n이번주 계획: 화 ${pl?pl[0]:'—'}, 목 ${pl?pl[1]:'—'}, 토 ${pl?pl[2]:'—'}\n신발: Structure26(이지), Novablast5(스피드/롱런)\n\n최근 기록:\n${lt}\n\n분석 항목 (각 2-3문장):\n1. 📊 페이스 변화 추이\n2. ✅ 계획 대비 수행 평가\n3. 💡 다음 주 조언\n4. ⚠️ 주의사항\n\n총 15문장 이내.`;
+  const prompt=`러닝 코치로서 한국어로 짧고 실용적 피드백을 주세요.
+
+선수: 남성 174cm 77kg, 마운자로 복용 중, 러닝 2개월차
+목표: 연말 10km 대회 sub-60 (현재 64분, 페이스 6:25/km)
+현재: ${w<1?'시작 전':w+'주차'} (${ph.name})
+이번주 계획: 화 ${pl?pl[0]:'—'}, 목 ${pl?pl[1]:'—'}, 토 ${pl?pl[2]:'—'}
+신발: Nike Structure 26(이지런), Asics Novablast 5(스피드/롱런)
+
+최근 운동 기록:
+${lt}
+
+분석 항목 (각 2-3문장):
+1. 📊 페이스 변화 추이
+2. ✅ 계획 대비 수행 평가
+3. 💡 다음 주 조언
+4. ⚠️ 주의사항
+
+총 15문장 이내로 간결하게.`;
+  const res=document.getElementById('aiRes');
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
-    const d=await r.json();const txt=d.content?.map(c=>c.text||'').join('')||'분석 실패';
-    res.innerHTML=`<div style="background:var(--card);border:1px solid var(--blue);border-radius:16px;padding:16px;margin-bottom:14px"><div style="font-size:12px;color:var(--blue);font-weight:700;margin-bottom:8px">🤖 AI 코치 분석</div><div style="font-size:13px;line-height:1.7;white-space:pre-wrap">${txt}</div></div>`;
+    navigator.clipboard.writeText(prompt).then(()=>{
+      res.style.display='block';
+      res.innerHTML='<div style="background:var(--card);border:1px solid var(--green);border-radius:16px;padding:16px;margin-bottom:14px"><div style="font-size:13px;color:var(--green);font-weight:600;margin-bottom:6px">✓ 프롬프트 복사 완료!</div><div style="font-size:12px;color:var(--dim);line-height:1.6">Claude(claude.ai) 또는 ChatGPT에 붙여넣기 하세요.</div></div>';
+    });
   }catch(e){
-    res.innerHTML=`<div style="background:var(--card);border:1px solid #ef4444;border-radius:16px;padding:16px;margin-bottom:14px"><div style="font-size:13px;color:#ef4444;font-weight:600;margin-bottom:6px">분석 실패</div><div style="font-size:12px;color:var(--dim);line-height:1.6">로컬 파일(file://)에서는 AI 분석이 안 돼요.<br>GitHub Pages에 올린 후 사용하세요!<br><br>배포: jacksonn1111-hub.github.io 레포에 이 파일을 업로드하면 됩니다.</div></div>`;
+    res.style.display='block';
+    res.innerHTML=`<div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px"><div style="font-size:12px;color:var(--accent);font-weight:600;margin-bottom:6px">아래 텍스트를 복사해서 Claude에 붙여넣기:</div><textarea style="width:100%;height:200px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px;font-size:11px;resize:none;user-select:text;-webkit-user-select:text" readonly>${prompt}</textarea></div>`;
   }
-  btn.textContent='🤖 AI 분석';btn.disabled=false;
 }
 loadRL();
 </script>

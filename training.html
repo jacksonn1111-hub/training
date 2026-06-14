@@ -126,13 +126,19 @@ input:focus{border-color:var(--accent)!important}
   <div class="w-screen center active" id="readyScreen">
     <div style="font-size:48px">🔥</div>
     <div style="font-size:22px;font-weight:700;text-align:center">홈트레이닝 루틴</div>
-    <div style="font-size:13px;color:var(--dim);text-align:center;line-height:1.6">부저음 가이드 · 약 12분</div>
+    <div style="font-size:13px;color:var(--dim);text-align:center;line-height:1.6">부저음 가이드 · 약 15분 · 5종목</div>
     <div id="readyList" style="width:100%;display:flex;flex-direction:column;gap:10px;margin-top:8px"></div>
     <div class="info-box" style="margin-top:4px">
       <div class="label" style="color:var(--accent)">🔊 사운드 가이드</div>
-      <div class="body">낮은 톤 = 내려가기, 높은 톤 = 올라가기. 화면에 동작 표시. 운동 중 화면 꺼지지 않습니다.</div>
+      <div class="body">낮은 톤 = 내려가기, 높은 톤 = 올라가기. 화면에 동작 표시. ▶️ 버튼으로 유튜브 자세 영상 확인!</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;width:100%;margin-top:8px">
+      <div style="font-size:13px;color:var(--dim);flex-shrink:0">⚖️ 현재 체중</div>
+      <input id="weightInput" type="number" step="0.1" style="width:80px;padding:8px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:16px;font-weight:600;text-align:center" onchange="saveWeight(this.value)">
+      <span style="font-size:12px;color:var(--dim)">kg (칼로리 계산용)</span>
     </div>
     <button class="btn-primary" style="margin-top:12px" onclick="startWorkout()">운동 시작 ▶</button>
+    <div id="workoutCal" style="width:100%"></div>
   </div>
 
   <div class="w-screen" id="exerciseScreen">
@@ -211,9 +217,11 @@ function switchPage(p){
 // WORKOUT (same logic as before)
 // ════════════════════════════════════
 const EX=[
-  {name:"맨몸 스쿼트",emoji:"🦵",reps:15,sets:3,type:"reps",rest:60,target:"허벅지 근육 강화",tip:"무릎이 발끝을 넘지 않게, 허벅지가 바닥과 평행할 때까지",downMs:2500,upMs:2000},
-  {name:"무릎 대고 푸쉬업",emoji:"💪",reps:8,sets:3,type:"reps",rest:60,target:"가슴, 팔 근육 강화",tip:"팔꿈치를 45도로 벌리고, 가슴이 바닥에 닿을 듯이",downMs:2500,upMs:2000},
-  {name:"플랭크",emoji:"🧘",reps:30,sets:3,type:"timed",rest:45,target:"코어 강화",tip:"엉덩이를 너무 올리거나 내리지 말고 일직선 유지"},
+  {name:"맨몸 스쿼트",emoji:"🦵",reps:15,sets:3,type:"reps",rest:60,target:"허벅지 근육 강화",tip:"무릎이 발끝을 넘지 않게, 허벅지가 바닥과 평행할 때까지",downMs:2500,upMs:2000,met:5.0,yt:"https://www.youtube.com/shorts/WjLvyBtRX_I"},
+  {name:"런지",emoji:"🏃",reps:10,sets:3,type:"reps",rest:60,target:"허벅지+엉덩이 강화",tip:"좌우 5회씩. 앞무릎 90도, 뒷무릎이 바닥에 닿을 듯이",downMs:2500,upMs:2000,met:4.0,yt:"https://www.youtube.com/watch?v=0LSfy60yRpM"},
+  {name:"무릎 대고 푸쉬업",emoji:"💪",reps:8,sets:3,type:"reps",rest:60,target:"가슴, 팔 근육 강화",tip:"팔꿈치를 45도로 벌리고, 가슴이 바닥에 닿을 듯이",downMs:2500,upMs:2000,met:3.8,yt:"https://www.youtube.com/watch?v=kKRing2KjOU"},
+  {name:"바이시클 크런치",emoji:"🔥",reps:10,sets:3,type:"reps",rest:60,target:"복근(상복부+옆구리)",tip:"좌우 5회씩. 반대쪽 팔꿈치와 무릎을 닿게. 목이 아닌 복근에 힘!",downMs:2000,upMs:2000,met:4.5,yt:"https://www.youtube.com/watch?v=kexFWrkx_UM"},
+  {name:"플랭크",emoji:"🧘",reps:30,sets:3,type:"timed",rest:45,target:"코어 강화",tip:"엉덩이를 너무 올리거나 내리지 말고 일직선 유지",met:3.8,yt:"https://www.youtube.com/watch?v=kKRing2KjOU"},
 ];
 const TOTAL_SETS=EX.reduce((a,e)=>a+e.sets,0);
 let sessionId=0,paused=false,skipped=false,totalSec=0,totalIv=null;
@@ -251,7 +259,11 @@ function startTotal(){stopTotal();totalSec=0;totalIv=setInterval(()=>{if(!paused
 function stopTotal(){if(totalIv){clearInterval(totalIv);totalIv=null}}
 
 // Init ready list
-(function(){const l=document.getElementById('readyList');EX.forEach(e=>{const d=document.createElement('div');d.className='ex-card';d.innerHTML=`<div class="emoji">${e.emoji}</div><div><div class="name">${e.name}</div><div class="detail">${e.type==='timed'?e.reps+'초':e.reps+'회'} × ${e.sets}세트 · ${e.target}</div></div>`;l.appendChild(d)})})();
+(function(){const l=document.getElementById('readyList');EX.forEach(e=>{const d=document.createElement('div');d.className='ex-card';d.innerHTML=`<div class="emoji">${e.emoji}</div><div style="flex:1"><div class="name">${e.name}</div><div class="detail">${e.type==='timed'?e.reps+'초':e.reps+'회'} × ${e.sets}세트 · ${e.target}</div></div><a href="${e.yt}" target="_blank" style="font-size:20px;text-decoration:none;flex-shrink:0;padding:4px" onclick="event.stopPropagation()">▶️</a>`;l.appendChild(d)})})();
+
+// Weight input
+function getWeight(){try{return parseFloat(localStorage.getItem('userWeight'))||77}catch(e){return 77}}
+function saveWeight(w){try{localStorage.setItem('userWeight',w)}catch(e){}}
 
 async function countdown(myId){const ov=document.getElementById('countdownOverlay'),num=document.getElementById('countdownNum');ov.classList.add('active');for(let t=3;t>0;t--){if(!isRunning(myId)){ov.classList.remove('active');return}num.textContent=t;num.style.animation='none';void num.offsetWidth;num.style.animation='countPop .4s ease';beep(600+(3-t)*200,100,0.35);await sleep(1000)}ov.classList.remove('active');if(isRunning(myId))beep(1000,200,0.45)}
 
@@ -263,9 +275,28 @@ async function runRest(myId,dur,ring){if(isRunning(myId))speak('쉬세요',1);fo
 
 async function startWorkout(){sessionId++;const myId=sessionId;paused=false;skipped=false;unlockAudio();requestWakeLock();const w=new SpeechSynthesisUtterance(' ');w.volume=0;w.lang='ko-KR';speechSynthesis?.speak(w);await sleep(200);await speak('준비',1);if(!isAlive(myId))return;startTotal();const exR=makeRing('exRing',220),restR=makeRing('restRing',220);let done=0;for(let ei=0;ei<EX.length;ei++){const ex=EX[ei];for(let si=1;si<=ex.sets;si++){if(!isAlive(myId))return;skipped=false;showWScreen('exerciseScreen');document.getElementById('exEmoji').textContent=ex.emoji;document.getElementById('exName').textContent=ex.name;document.getElementById('exSet').textContent=`세트 ${si} / ${ex.sets}`;document.getElementById('exTip').textContent=ex.tip;document.getElementById('cmdBadge').style.display='none';exR.set(0,'var(--green)');exR.b().textContent='0';exR.s().textContent=ex.type==='timed'?'초 남음':`/ ${ex.reps}회`;updateProg(done);if(!skipped){await speak(`${ex.name}, ${si}세트 시작합니다`,1)}if(!isAlive(myId))return;if(!skipped){await countdown(myId)}if(!isAlive(myId))return;if(!skipped){if(ex.type==='reps')await runReps(myId,ex,exR);else await runTimed(myId,ex,exR)}if(!isAlive(myId))return;done++;updateProg(done);const lastS=si>=ex.sets,lastE=ei>=EX.length-1;if(lastS&&lastE){skipped=false;await speak('운동 완료! 수고했습니다!',1);if(isAlive(myId))showDone();return}skipped=false;const rd=lastS?90:ex.rest;showWScreen('restScreen');restR.set(0,'var(--rest)');restR.b().textContent=rd;restR.s().textContent='초';if(lastS){document.getElementById('nextName').textContent=`${EX[ei+1].emoji} ${EX[ei+1].name} · 세트 1`;if(!skipped)await speak(`${EX[ei+1].name}으로 넘어갑니다. ${rd}초 쉬세요`,1)}else{document.getElementById('nextName').textContent=`${ex.emoji} ${ex.name} · 세트 ${si+1}`;if(!skipped)await speak(`${si}세트 완료. ${rd}초 쉬세요`,1)}if(!isAlive(myId))return;await runRest(myId,rd,restR);if(!isAlive(myId))return}}}
 
-function showDone(){stopTotal();releaseWakeLock();showWScreen('doneScreen');document.getElementById('doneMsg').innerHTML=`총 소요 시간: ${fmt(totalSec)}<br>이제 러닝 나가자! 🏃‍♂️`;document.getElementById('totalTime').style.color='var(--green)';const g=document.getElementById('doneGrid');g.innerHTML='';EX.forEach(e=>{const d=document.createElement('div');d.className='done-card';d.innerHTML=`<div class="emoji">${e.emoji}</div><div class="check">✓ 완료</div><div class="sub">${e.type==='timed'?e.reps+'초':e.reps+'회'} × ${e.sets}세트</div>`;g.appendChild(d)})}
+function showDone(){
+  stopTotal();releaseWakeLock();showWScreen('doneScreen');
+  // Calorie calculation: MET * weight(kg) * time(hours)
+  const weight=getWeight();
+  const totalMin=totalSec/60;
+  const avgMet=EX.reduce((a,e)=>a+e.met*e.sets,0)/EX.reduce((a,e)=>a+e.sets,0);
+  const calBurn=Math.round(avgMet*weight*(totalMin/60));
 
-function resetWorkout(){sessionId++;paused=false;skipped=false;speechSynthesis?.cancel();stopTotal();releaseWakeLock();totalSec=0;document.getElementById('totalTime').textContent='0:00';document.getElementById('totalTime').style.color='var(--dim)';document.getElementById('countdownOverlay').classList.remove('active');['pauseBtn','restPauseBtn'].forEach(id=>{const b=document.getElementById(id);b.textContent='⏸ 일시정지';b.classList.remove('active')});showWScreen('readyScreen')}
+  document.getElementById('doneMsg').innerHTML=`총 소요 시간: ${fmt(totalSec)}<br>🔥 약 ${calBurn}kcal 소모<br>이제 러닝 나가자! 🏃‍♂️`;
+  document.getElementById('totalTime').style.color='var(--green)';
+  const g=document.getElementById('doneGrid');g.innerHTML='';
+  EX.forEach(e=>{const d=document.createElement('div');d.className='done-card';d.innerHTML=`<div class="emoji">${e.emoji}</div><div class="check">✓ 완료</div><div class="sub">${e.type==='timed'?e.reps+'초':e.reps+'회'} × ${e.sets}세트</div>`;g.appendChild(d)});
+
+  // Save workout history
+  try{
+    const n=new Date(),ds=n.getFullYear()+'-'+(n.getMonth()+1)+'-'+n.getDate();
+    const wh=JSON.parse(localStorage.getItem('workoutHist')||'{}');
+    wh[ds]={time:totalSec,cal:calBurn,exercises:EX.length,sets:EX.reduce((a,e)=>a+e.sets,0)};
+    localStorage.setItem('workoutHist',JSON.stringify(wh));
+  }catch(e){}
+}
+function resetWorkout(){sessionId++;paused=false;skipped=false;speechSynthesis?.cancel();stopTotal();releaseWakeLock();totalSec=0;document.getElementById('totalTime').textContent='0:00';document.getElementById('totalTime').style.color='var(--dim)';document.getElementById('countdownOverlay').classList.remove('active');['pauseBtn','restPauseBtn'].forEach(id=>{const b=document.getElementById(id);b.textContent='⏸ 일시정지';b.classList.remove('active')});showWScreen('readyScreen');renderWorkoutCal()}
 
 // ════════════════════════════════════
 // DIET CHECKLIST
@@ -683,6 +714,71 @@ ${lt}
   }
 }
 loadRL();
+
+// ═══════════════════════════════════
+// WORKOUT CALENDAR
+// ═══════════════════════════════════
+function renderWorkoutCal(){
+  const wh=JSON.parse(localStorage.getItem('workoutHist')||'{}');
+  const now=new Date(),yr=now.getFullYear(),mo=now.getMonth();
+  const firstDay=new Date(yr,mo,1).getDay();
+  const dim=new Date(yr,mo+1,0).getDate();
+  const today=now.getDate();
+  const mNames=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+
+  // Monthly stats
+  let mCount=0,mCal=0;
+  for(let d=1;d<=dim;d++){
+    const k=yr+'-'+(mo+1)+'-'+d;
+    if(wh[k]){mCount++;mCal+=wh[k].cal||0;}
+  }
+
+  // Streak
+  let streak=0;
+  for(let d=0;d<90;d++){
+    const ck=new Date(yr,mo,today-d);
+    const dow=ck.getDay();
+    const k=ck.getFullYear()+'-'+(ck.getMonth()+1)+'-'+ck.getDate();
+    // Only count training days (Tue/Thu/Sat)
+    if([2,4,6].includes(dow)){
+      if(wh[k])streak++;else if(d>0)break;
+    }
+  }
+
+  let h=`<div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-top:14px">`;
+  h+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">`;
+  h+=`<div style="font-size:14px;font-weight:700">📅 ${mNames[mo]} 홈트 기록</div>`;
+  if(streak>0)h+=`<div style="font-size:11px;color:var(--accent);font-weight:700">🔥 ${streak}회 연속!</div>`;
+  h+=`</div>`;
+
+  // Calendar
+  h+=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center;margin-bottom:4px">`;
+  ['일','월','화','수','목','금','토'].forEach(d=>h+=`<div style="font-size:10px;color:var(--dim);font-weight:600">${d}</div>`);
+  h+=`</div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center">`;
+  for(let i=0;i<firstDay;i++)h+=`<div></div>`;
+  for(let d=1;d<=dim;d++){
+    const k=yr+'-'+(mo+1)+'-'+d;
+    const data=wh[k];
+    const isT=d===today;
+    let bg='transparent',color='var(--dim)';
+    if(data){bg='var(--green)';color='#fff'}
+    h+=`<div style="width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:8px;background:${bg};color:${color};font-size:11px;font-weight:${isT?'800':'500'};border:${isT?'2px solid var(--accent)':'2px solid transparent'}">${d}</div>`;
+  }
+  h+=`</div>`;
+
+  // Stats
+  if(mCount>0){
+    h+=`<div style="display:flex;gap:10px;margin-top:10px">`;
+    h+=`<div style="flex:1;text-align:center;background:var(--bg);padding:8px;border-radius:8px"><div style="font-size:16px;font-weight:800;color:var(--green)">${mCount}회</div><div style="font-size:10px;color:var(--dim)">이번 달 운동</div></div>`;
+    h+=`<div style="flex:1;text-align:center;background:var(--bg);padding:8px;border-radius:8px"><div style="font-size:16px;font-weight:800;color:var(--accent)">${mCal}kcal</div><div style="font-size:10px;color:var(--dim)">총 소모</div></div>`;
+    h+=`</div>`;
+  }
+  h+=`</div>`;
+
+  document.getElementById('workoutCal').innerHTML=h;
+}
+renderWorkoutCal();
+const _wi=document.getElementById('weightInput');if(_wi)_wi.value=getWeight();
 </script>
 </body>
 </html>

@@ -177,6 +177,7 @@ input:focus{border-color:var(--accent)!important}
   </div>
   <div class="d-tabs"><div class="d-tab" onclick="setDietTab('morning')">🌅 아침런</div><div class="d-tab active" onclick="setDietTab('evening')">🏃 저녁런</div><div class="d-tab" onclick="setDietTab('night')">🌙 야간런</div><div class="d-tab" onclick="setDietTab('rest')">🏋️ 홈트</div></div>
   <div id="mealList" style="width:100%;max-width:420px"></div>
+  <div id="freeFood" style="width:100%;max-width:420px;padding:0 16px;margin-bottom:14px"></div>
   <div id="dietCalendar" style="width:100%;max-width:420px"></div>
   <div class="d-note"><div class="nlabel">💡 팁</div><div class="nbody">파스타에 새우/브로콜리 추가 → 단백질↑. 더단백 하루 2병 챙기기! 양배추는 양 늘려도 OK.</div></div>
   <button class="d-reset" onclick="resetDiet()">↻ 체크 초기화</button>
@@ -342,10 +343,11 @@ function saveDiet(){
   try{
     const meals=DMEALS[dietTab];const allItems=meals.flatMap(m=>m.items);
     const checked=allItems.filter(i=>!!dietChecked[i.id]);
-    const cal=checked.reduce((a,i)=>a+i.kcal,0);
-    const pro=checked.reduce((a,i)=>a+i.pro,0);
+    const cal=checked.reduce((a,i)=>a+i.kcal,0)+customFoods.reduce((a,f)=>a+f.cal,0);
+    const pro=checked.reduce((a,i)=>a+i.pro,0)+customFoods.reduce((a,f)=>a+f.pro,0);
+    const allNames=checked.map(i=>i.name).concat(customFoods.map(f=>f.name));
     const hist=JSON.parse(localStorage.getItem('dietHist')||'{}');
-    hist[todayStr()]={c:checked.length,t:allItems.length,pct:Math.round(checked.length/allItems.length*100),cal,pro,items:checked.map(i=>i.name)};
+    hist[todayStr()]={c:checked.length+customFoods.length,t:allItems.length,pct:Math.round((checked.length+customFoods.length)/Math.max(allItems.length,1)*100),cal,pro,items:allNames};
     localStorage.setItem('dietHist',JSON.stringify(hist));
   }catch(e){}
 }
@@ -502,17 +504,132 @@ function renderDiet(){
     list.appendChild(div)});
   const targetCal=dietTab==='rest'?1283:1461;
   const targetPro=dietTab==='rest'?139:147;
-  document.getElementById('totalCal').textContent=tc.toLocaleString();
-  document.getElementById('totalPro').textContent=tp;
-  document.getElementById('calBar').style.width=Math.min(100,tc/targetCal*100)+'%';
-  document.getElementById('proBar').style.width=Math.min(100,tp/targetPro*100)+'%';
+  // Add custom food totals
+  const cfCal=customFoods.reduce((a,f)=>a+f.cal,0);
+  const cfPro=customFoods.reduce((a,f)=>a+f.pro,0);
+  const finalCal=tc+cfCal, finalPro=tp+cfPro;
+  document.getElementById('totalCal').textContent=finalCal.toLocaleString();
+  document.getElementById('totalPro').textContent=finalPro;
+  document.getElementById('calBar').style.width=Math.min(100,finalCal/targetCal*100)+'%';
+  document.getElementById('proBar').style.width=Math.min(100,finalPro/targetPro*100)+'%';
   document.querySelector('#totalCal').parentElement.querySelector('.slabel').textContent=`kcal / ${targetCal.toLocaleString()}`;
   document.querySelector('#totalPro').parentElement.querySelector('.slabel').textContent=`단백질(g) / ${targetPro}`;
+  renderFreeFood();
   renderCalendar();
 }
 function toggleDiet(id){dietChecked[id]=!dietChecked[id];saveDiet();renderDiet()}
 function setDietTab(t){dietTab=t;saveDiet();renderDiet()}
-function resetDiet(){if(confirm('오늘 체크를 초기화할까요?')){dietChecked={};saveDiet();renderDiet()}}
+function resetDiet(){if(confirm('오늘 체크를 초기화할까요?')){dietChecked={};customFoods=[];saveCustomFoods();saveDiet();renderDiet()}}
+
+// ═══════════════════════════════════
+// FOOD DATABASE + FREE INPUT
+// ═══════════════════════════════════
+const FOODS={
+  "🇰🇷 한식":[
+    ["김치찌개",300,8],["된장찌개",250,12],["순두부찌개",280,14],["제육볶음",450,25],
+    ["불고기",400,28],["비빔밥",550,18],["김밥 1줄",350,10],["떡볶이",380,8],
+    ["냉면",500,12],["설렁탕",400,25],["갈비탕",500,30],["삼겹살 200g",580,22],
+    ["김치볶음밥",480,12],["잡채",350,8],["된장국",80,5],["미역국",90,4],
+    ["공깃밥",300,5],["반공기밥",150,3],["계란후라이",90,7],["두부 반모",100,18],
+  ],
+  "🍝 양식":[
+    ["스테이크 200g",500,40],["피자 1조각",270,12],["햄버거",550,25],
+    ["크림파스타",650,18],["토마토파스타",480,15],["시저샐러드",350,15],
+    ["리조또",500,12],["샌드위치",380,18],["오믈렛",250,16],["수프",180,6],
+  ],
+  "🍣 일식":[
+    ["초밥 8개",400,18],["라멘",550,20],["돈까스",600,25],["우동",450,14],
+    ["오니기리 1개",200,5],["규동",650,22],["가츠동",700,25],["에다마메",120,11],
+    ["소바",380,14],["연어 사시미 5점",180,20],
+  ],
+  "🥟 중식":[
+    ["짜장면",650,15],["짬뽕",500,18],["탕수육",600,20],["볶음밥",550,14],
+    ["마파두부",350,18],["깐풍기",500,22],["고추잡채",400,15],["군만두 5개",350,12],
+    ["유린기",450,25],["팔보채",380,18],
+  ]
+};
+
+let customFoods=[];
+function loadCustomFoods(){try{const s=JSON.parse(localStorage.getItem('customFoods')||'{}');if(s.date===todayStr())customFoods=s.items||[];else customFoods=[]}catch(e){customFoods=[]}}
+function saveCustomFoods(){try{localStorage.setItem('customFoods',JSON.stringify({date:todayStr(),items:customFoods}))}catch(e){}}
+
+function renderFreeFood(){
+  let h=`<div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px">`;
+  h+=`<div style="font-size:14px;font-weight:700;margin-bottom:10px">🍱 일반식 추가</div>`;
+  h+=`<input id="foodSearch" type="text" placeholder="음식 검색 (예: 김치찌개, 돈까스)" oninput="searchFood(this.value)" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;margin-bottom:6px">`;
+  h+=`<div id="foodResults" style="max-height:200px;overflow-y:auto"></div>`;
+
+  // Custom food entries today
+  if(customFoods.length>0){
+    h+=`<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px">`;
+    h+=`<div style="font-size:12px;color:var(--dim);margin-bottom:6px">오늘 추가한 음식</div>`;
+    let tCal=0,tPro=0;
+    customFoods.forEach((f,i)=>{
+      tCal+=f.cal;tPro+=f.pro;
+      h+=`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.03)">`;
+      h+=`<div style="flex:1;font-size:13px">${f.name}</div>`;
+      h+=`<div style="font-size:11px;color:var(--accent)">${f.cal}kcal</div>`;
+      h+=`<div style="font-size:11px;color:var(--green)">P${f.pro}g</div>`;
+      h+=`<button onclick="delCustomFood(${i})" style="background:none;color:var(--dim);font-size:13px;padding:2px 4px">✕</button>`;
+      h+=`</div>`;
+    });
+    h+=`<div style="display:flex;justify-content:space-between;margin-top:6px;font-size:12px;font-weight:600">`;
+    h+=`<span style="color:var(--accent)">합계 ${tCal}kcal</span>`;
+    h+=`<span style="color:var(--green)">단백질 ${tPro}g</span></div>`;
+    h+=`</div>`;
+  }
+  h+=`</div>`;
+  document.getElementById('freeFood').innerHTML=h;
+}
+
+function searchFood(q){
+  const el=document.getElementById('foodResults');
+  if(!q||q.length<1){el.innerHTML='';return}
+  const ql=q.toLowerCase();
+  let results=[];
+  for(const[cat,items]of Object.entries(FOODS)){
+    items.forEach(([name,cal,pro])=>{
+      if(name.toLowerCase().includes(ql))results.push({name,cal,pro,cat});
+    });
+  }
+  if(results.length===0){
+    el.innerHTML=`<div style="padding:8px;font-size:12px;color:var(--dim)">검색 결과 없음 — 직접 입력:</div>
+    <div style="display:flex;gap:4px;padding:4px 0">
+      <input id="cName" value="${q}" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px" placeholder="음식명">
+      <input id="cCal" type="number" style="width:60px;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;text-align:center" placeholder="kcal">
+      <input id="cPro" type="number" style="width:44px;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;text-align:center" placeholder="P(g)">
+      <button onclick="addManualFood()" style="padding:8px 10px;border-radius:8px;background:var(--green);color:#fff;font-size:12px;font-weight:600">+</button>
+    </div>`;
+    return;
+  }
+  let h='';
+  results.slice(0,8).forEach(r=>{
+    h+=`<div onclick="addFood('${r.name}',${r.cal},${r.pro})" style="display:flex;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid rgba(255,255,255,.03);cursor:pointer">`;
+    h+=`<div style="flex:1;font-size:13px">${r.name}</div>`;
+    h+=`<div style="font-size:11px;color:var(--accent)">${r.cal}kcal</div>`;
+    h+=`<div style="font-size:11px;color:var(--green)">P${r.pro}g</div>`;
+    h+=`<div style="font-size:11px;color:var(--dim)">${r.cat}</div>`;
+    h+=`</div>`;
+  });
+  el.innerHTML=h;
+}
+
+function addFood(name,cal,pro){
+  customFoods.push({name,cal,pro});
+  saveCustomFoods();saveDiet();renderFreeFood();renderDiet();
+  const si=document.getElementById('foodSearch');if(si)si.value='';
+  const fr=document.getElementById('foodResults');if(fr)fr.innerHTML='';
+}
+function addManualFood(){
+  const name=document.getElementById('cName')?.value?.trim();
+  const cal=parseInt(document.getElementById('cCal')?.value)||0;
+  const pro=parseInt(document.getElementById('cPro')?.value)||0;
+  if(!name){alert('음식명을 입력하세요');return}
+  if(!cal){alert('칼로리를 입력하세요');return}
+  addFood(name,cal,pro);
+}
+function delCustomFood(i){customFoods.splice(i,1);saveCustomFoods();saveDiet();renderFreeFood();renderDiet()}
+loadCustomFoods();
 setInterval(()=>{try{const s=JSON.parse(localStorage.getItem('dietCheck')||'{}');if(s.date&&s.date!==todayStr()){dietChecked={};saveDiet();renderDiet()}}catch(e){}},60000);
 
 loadDiet();

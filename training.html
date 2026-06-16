@@ -145,7 +145,7 @@ input:focus{border-color:var(--accent)!important}
     <div style="text-align:center"><div id="exEmoji" style="font-size:32px;margin-bottom:2px"></div><div id="exName" style="font-size:20px;font-weight:700"></div><div id="exSet" style="font-size:13px;color:var(--accent);font-weight:600;margin-top:4px"></div></div>
     <div class="ring-wrap" id="exRing"></div>
     <div id="cmdBadge" style="display:none"></div>
-    <div class="info-box"><div class="label">💡 자세 팁</div><div class="body" id="exTip"></div><img id="exImg" style="width:100%;border-radius:8px;margin-top:8px;display:none"></div>
+    <div class="info-box"><div style="display:flex;justify-content:space-between;align-items:center"><div class="label" style="margin-bottom:0">💡 자세 팁</div><button id="exGuideBtn" onclick="openImgModal(document.getElementById('exImg').src)" style="font-size:11px;color:var(--blue);background:none;padding:4px 8px;border:1px solid var(--border);border-radius:6px">📖 자세보기</button></div><div class="body" id="exTip" style="margin-top:4px"></div></div>
     <div class="btn-row"><button class="btn-pause" id="pauseBtn" onclick="togglePause()">⏸ 일시정지</button><button class="btn-skip" onclick="skipCurrent()">⏭ 다음</button><button class="btn-stop" onclick="resetWorkout()">✕ 중단</button></div>
   </div>
 
@@ -165,6 +165,12 @@ input:focus{border-color:var(--accent)!important}
 </div>
 
 <div class="countdown-overlay" id="countdownOverlay"><div class="countdown-num" id="countdownNum"></div><div class="countdown-label">준비하세요</div></div>
+
+<!-- IMAGE MODAL -->
+<div id="imgModal" onclick="this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:300;display:none;flex-direction:column;align-items:center;justify-content:center;padding:16px;cursor:pointer">
+  <img id="imgModalSrc" style="max-width:100%;max-height:85vh;border-radius:12px;object-fit:contain">
+  <div style="color:var(--dim);font-size:13px;margin-top:12px">탭하면 닫힘</div>
+</div>
 
 <!-- ════════════════════════════════════ -->
 <!-- PAGE: DIET -->
@@ -260,7 +266,13 @@ function startTotal(){stopTotal();totalSec=0;totalIv=setInterval(()=>{if(!paused
 function stopTotal(){if(totalIv){clearInterval(totalIv);totalIv=null}}
 
 // Init ready list
-(function(){const l=document.getElementById('readyList');EX.forEach(e=>{const d=document.createElement('div');d.className='ex-card';d.style.flexWrap='wrap';d.innerHTML=`<div class="emoji">${e.emoji}</div><div style="flex:1"><div class="name">${e.name}</div><div class="detail">${e.type==='timed'?e.reps+'초':e.reps+'회'} × ${e.sets}세트 · ${e.target}</div></div><button onclick="const img=this.parentElement.querySelector('.ex-guide');img.style.display=img.style.display==='none'?'block':'none'" style="font-size:11px;color:var(--blue);background:none;padding:6px 10px;border:1px solid var(--border);border-radius:8px;flex-shrink:0">자세보기</button><img class="ex-guide" src="${e.img}" style="display:none;width:100%;border-radius:10px;margin-top:8px;border:1px solid var(--border)">`;l.appendChild(d)})})();
+(function(){const l=document.getElementById('readyList');EX.forEach(e=>{const d=document.createElement('div');d.className='ex-card';d.style.flexWrap='wrap';d.innerHTML=`<div class="emoji">${e.emoji}</div><div style="flex:1"><div class="name">${e.name}</div><div class="detail">${e.type==='timed'?e.reps+'초':e.reps+'회'} × ${e.sets}세트 · ${e.target}</div></div><button onclick="openImgModal('${e.img}');event.stopPropagation()" style="font-size:11px;color:var(--blue);background:none;padding:6px 10px;border:1px solid var(--border);border-radius:8px;flex-shrink:0">자세보기</button>`;l.appendChild(d)})})();
+
+function openImgModal(src){
+  const m=document.getElementById('imgModal');
+  document.getElementById('imgModalSrc').src=src;
+  m.style.display='flex';
+}
 
 // Weight input
 function getWeight(){try{return parseFloat(localStorage.getItem('userWeight'))||77}catch(e){return 77}}
@@ -274,7 +286,7 @@ async function runTimed(myId,ex,ring){if(isRunning(myId))speak('시작',1);for(l
 
 async function runRest(myId,dur,ring){if(isRunning(myId))speak('쉬세요',1);for(let t=dur;t>0;t--){if(!isRunning(myId))break;await waitP(myId);if(!isRunning(myId))break;ring.b().textContent=t;ring.set(1-t/dur,'var(--rest)');if(t===5)speak('5초 뒤 시작합니다',1);else if(t<=3)beep(500,60,0.2);await sleep(1000)}if(isRunning(myId))toneDone()}
 
-async function startWorkout(){sessionId++;const myId=sessionId;paused=false;skipped=false;unlockAudio();requestWakeLock();const w=new SpeechSynthesisUtterance(' ');w.volume=0;w.lang='ko-KR';speechSynthesis?.speak(w);await sleep(200);await speak('준비',1);if(!isAlive(myId))return;startTotal();const exR=makeRing('exRing',220),restR=makeRing('restRing',220);let done=0;for(let ei=0;ei<EX.length;ei++){const ex=EX[ei];for(let si=1;si<=ex.sets;si++){if(!isAlive(myId))return;skipped=false;showWScreen('exerciseScreen');document.getElementById('exEmoji').textContent=ex.emoji;document.getElementById('exName').textContent=ex.name;document.getElementById('exSet').textContent=`세트 ${si} / ${ex.sets}`;document.getElementById('exTip').textContent=ex.tip;const _ei=document.getElementById('exImg');if(ex.img){_ei.src=ex.img;_ei.style.display='block'}else{_ei.style.display='none'}document.getElementById('cmdBadge').style.display='none';exR.set(0,'var(--green)');exR.b().textContent='0';exR.s().textContent=ex.type==='timed'?'초 남음':`/ ${ex.reps}회`;updateProg(done);if(!skipped){await speak(`${ex.name}, ${si}세트 시작합니다`,1)}if(!isAlive(myId))return;if(!skipped){await countdown(myId)}if(!isAlive(myId))return;if(!skipped){if(ex.type==='reps')await runReps(myId,ex,exR);else await runTimed(myId,ex,exR)}if(!isAlive(myId))return;done++;updateProg(done);const lastS=si>=ex.sets,lastE=ei>=EX.length-1;if(lastS&&lastE){skipped=false;await speak('운동 완료! 수고했습니다!',1);if(isAlive(myId))showDone();return}skipped=false;const rd=lastS?90:ex.rest;showWScreen('restScreen');restR.set(0,'var(--rest)');restR.b().textContent=rd;restR.s().textContent='초';if(lastS){document.getElementById('nextName').textContent=`${EX[ei+1].emoji} ${EX[ei+1].name} · 세트 1`;if(!skipped)await speak(`${EX[ei+1].name}으로 넘어갑니다. ${rd}초 쉬세요`,1)}else{document.getElementById('nextName').textContent=`${ex.emoji} ${ex.name} · 세트 ${si+1}`;if(!skipped)await speak(`${si}세트 완료. ${rd}초 쉬세요`,1)}if(!isAlive(myId))return;await runRest(myId,rd,restR);if(!isAlive(myId))return}}}
+async function startWorkout(){sessionId++;const myId=sessionId;paused=false;skipped=false;unlockAudio();requestWakeLock();const w=new SpeechSynthesisUtterance(' ');w.volume=0;w.lang='ko-KR';speechSynthesis?.speak(w);await sleep(200);await speak('준비',1);if(!isAlive(myId))return;startTotal();const exR=makeRing('exRing',220),restR=makeRing('restRing',220);let done=0;for(let ei=0;ei<EX.length;ei++){const ex=EX[ei];for(let si=1;si<=ex.sets;si++){if(!isAlive(myId))return;skipped=false;showWScreen('exerciseScreen');document.getElementById('exEmoji').textContent=ex.emoji;document.getElementById('exName').textContent=ex.name;document.getElementById('exSet').textContent=`세트 ${si} / ${ex.sets}`;document.getElementById('exTip').textContent=ex.tip;document.getElementById('exGuideBtn').onclick=function(){openImgModal(ex.img)};document.getElementById('cmdBadge').style.display='none';exR.set(0,'var(--green)');exR.b().textContent='0';exR.s().textContent=ex.type==='timed'?'초 남음':`/ ${ex.reps}회`;updateProg(done);if(!skipped){await speak(`${ex.name}, ${si}세트 시작합니다`,1)}if(!isAlive(myId))return;if(!skipped){await countdown(myId)}if(!isAlive(myId))return;if(!skipped){if(ex.type==='reps')await runReps(myId,ex,exR);else await runTimed(myId,ex,exR)}if(!isAlive(myId))return;done++;updateProg(done);const lastS=si>=ex.sets,lastE=ei>=EX.length-1;if(lastS&&lastE){skipped=false;await speak('운동 완료! 수고했습니다!',1);if(isAlive(myId))showDone();return}skipped=false;const rd=lastS?90:ex.rest;showWScreen('restScreen');restR.set(0,'var(--rest)');restR.b().textContent=rd;restR.s().textContent='초';if(lastS){document.getElementById('nextName').textContent=`${EX[ei+1].emoji} ${EX[ei+1].name} · 세트 1`;if(!skipped)await speak(`${EX[ei+1].name}으로 넘어갑니다. ${rd}초 쉬세요`,1)}else{document.getElementById('nextName').textContent=`${ex.emoji} ${ex.name} · 세트 ${si+1}`;if(!skipped)await speak(`${si}세트 완료. ${rd}초 쉬세요`,1)}if(!isAlive(myId))return;await runRest(myId,rd,restR);if(!isAlive(myId))return}}}
 
 function showDone(){
   stopTotal();releaseWakeLock();showWScreen('doneScreen');

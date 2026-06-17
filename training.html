@@ -500,10 +500,11 @@ let schedWeekOffset=0;
 
 // ==================== UTILITY ====================
 const $=id=>document.getElementById(id);
-const today=()=>new Date().toISOString().slice(0,10);
+// 로컬 타임존 기준 날짜 (한국 디바이스 = KST)
+function today(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 const getLS=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}};
 const setLS=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
-const dateStr=d=>d.toISOString().slice(0,10);
+function dateStr(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 const formatPace=s=>{const m=Math.floor(s/60),sec=Math.round(s%60);return`${m}'${sec.toString().padStart(2,'0')}"`};
 
 function checkMidnightReset(){

@@ -125,6 +125,17 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 .type-race{background:rgba(225,112,85,.2);color:#e17055}
 .day-detail-section{margin-bottom:16px}
 .day-detail-section h4{font-size:13px;font-weight:700;color:var(--accent2);margin-bottom:8px}
+/* Command badge */
+.cmd-badge{text-align:center;font-size:22px;font-weight:800;padding:12px 28px;border-radius:20px;margin:12px auto 0;width:fit-content;animation:fadeSlide .3s ease}
+.cmd-down{color:var(--blue);background:rgba(116,185,255,.15);border:2px solid rgba(116,185,255,.25)}
+.cmd-up{color:var(--green);background:rgba(0,184,148,.15);border:2px solid rgba(0,184,148,.25)}
+.cmd-hold{color:var(--orange);background:rgba(253,203,110,.15);border:2px solid rgba(253,203,110,.25)}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* Countdown overlay */
+.countdown-overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:900;display:none;align-items:center;justify-content:center}
+.countdown-overlay.active{display:flex}
+.countdown-num{font-family:'JetBrains Mono',monospace;font-size:120px;font-weight:800;color:var(--accent2);animation:countPop .4s ease}
+@keyframes countPop{from{transform:scale(1.5);opacity:0}to{transform:scale(1);opacity:1}}
 </style>
 </head>
 <body>
@@ -233,14 +244,20 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
   <div id="timerArea" class="hidden mt-12">
     <div class="exercise-name" id="exName"></div>
     <div class="exercise-detail" id="exDetail"></div>
-    <div class="timer-display mt-12" id="timerDisp">00:00</div>
+    <div id="cmdBadge" class="cmd-badge" style="display:none"></div>
+    <div class="timer-display mt-8" id="timerDisp">00:00</div>
     <div class="timer-label" id="timerSetInfo"></div>
+    <div class="timer-label" id="timerRepInfo" style="font-size:16px;font-weight:700;color:var(--accent2)"></div>
     <div class="progress-bar mt-12"><div class="progress-fill" id="timerProgress" style="width:0;background:var(--accent)"></div></div>
     <div class="timer-controls mt-16">
       <button class="btn btn-secondary btn-sm" onclick="skipExercise()">건너뛰기</button>
       <button class="btn btn-primary" id="btnPause" onclick="togglePause()">일시정지</button>
       <button class="btn btn-danger btn-sm" onclick="stopWorkout()">중지</button>
     </div>
+  </div>
+  <!-- Countdown overlay -->
+  <div id="countdownOverlay" class="countdown-overlay">
+    <div id="countdownNum" class="countdown-num">3</div>
   </div>
   <div id="timerStart" class="mt-12"><button class="btn btn-primary btn-full" onclick="startWorkout()">🔥 운동 시작</button></div>
   <div id="timerDone" class="hidden mt-12 text-center">
@@ -359,7 +376,7 @@ const EXERCISES=[
   {id:'crunch',name:'바이시클크런치',reps:10,sets:3,type:'rep',met:3.5,img:'ex-crunch.png'},
   {id:'plank',name:'플랭크',duration:45,sets:3,type:'time',met:3.8,img:'ex-plank.png'}
 ];
-const REP_DUR=3,REST_SET=30,REST_EX=45;
+const REST_SET=30,REST_EX=45;
 
 // Diet: 아침/점심/저녁/간식 with shared IDs
 const DIET_PLANS={
@@ -476,8 +493,8 @@ function getPhaseForWeek(w){
 
 // ==================== STATE ====================
 let currentWeight=parseFloat(localStorage.getItem('fs_weight'))||77.0;
-let audioCtx=null,wakeLock=null,timerInterval=null,timerPaused=false;
-let currentExIdx=0,currentSet=0,currentPhase='',timeLeft=0,totalTimerSecs=0,elapsedTimerSecs=0,workoutStartTime=null;
+let audioCtx=null,wakeLock=null,timerPaused=false;
+let totalTimerSecs=0,elapsedTimerSecs=0,workoutStartTime=null;
 let calViewDate=new Date(),currentDietTab='breakfast';
 let schedWeekOffset=0;
 
@@ -535,9 +552,8 @@ function updateWeightBanner(){$('curWeight').textContent=currentWeight.toFixed(1
 function renderExercisePreview(){
   $('exercisePreview').innerHTML=EXERCISES.map(ex=>`
     <div class="ex-item">
-      <div class="ex-thumb" onclick="showExImage('${ex.id}')" style="border:1.5px solid ${EX_COLORS[ex.id]}22">
-        <img src="${ex.img}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" style="width:100%;height:100%;object-fit:cover;border-radius:8px">
-        <div style="display:none;width:100%;height:100%">${EX_SVG[ex.id]}</div>
+      <div class="ex-thumb" onclick="showExImage('${ex.id}')" style="border:1.5px solid ${EX_COLORS[ex.id]}22" id="thumb_${ex.id}">
+        ${EX_SVG[ex.id]}
       </div>
       <div class="ex-info">
         <div class="name">${ex.name}</div>
@@ -545,58 +561,211 @@ function renderExercisePreview(){
       </div>
     </div>
   `).join('');
+  // Try loading real images
+  EXERCISES.forEach(ex=>{
+    const img=new Image();
+    img.onload=function(){
+      const thumb=document.getElementById('thumb_'+ex.id);
+      if(thumb){thumb.innerHTML='';img.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:8px';thumb.appendChild(img)}
+    };
+    img.src=ex.img;
+  });
 }
 function showExImage(id){
   const ex=EXERCISES.find(e=>e.id===id);
   $('imgModalLabel').textContent=ex.name;
-  // Try real image first
+  // Try real image
   const img=$('imgModalImg');
-  img.src=ex.img;
-  img.style.display='block';
-  img.onerror=function(){
-    this.style.display='none';
+  const testImg=new Image();
+  testImg.onload=function(){img.src=ex.img;img.style.display='block';
+    let c=$('imgModal').querySelector('.ex-svg-large');if(c)c.innerHTML=''};
+  testImg.onerror=function(){img.style.display='none';
     let c=$('imgModal').querySelector('.ex-svg-large');
     if(!c){c=document.createElement('div');c.className='ex-svg-large';$('imgModal').insertBefore(c,$('imgModalLabel'))}
-    c.innerHTML=EX_SVG[id].replace('viewBox="0 0 80 80"','viewBox="0 0 80 80" width="260" height="260"');
-  };
-  // Clear SVG fallback if image loads
-  let c=$('imgModal').querySelector('.ex-svg-large');
-  if(c)c.innerHTML='';
+    c.innerHTML=EX_SVG[id].replace('viewBox="0 0 80 80"','viewBox="0 0 80 80" width="260" height="260"')};
+  testImg.src=ex.img;
   $('imgModal').classList.add('show');
 }
 
-// ==================== TIMER ====================
-function calcTotalTime(){let t=0;EXERCISES.forEach((e,i)=>{const d=e.type==='time'?e.duration:e.reps*REP_DUR;t+=d*e.sets+REST_SET*(e.sets-1);if(i<EXERCISES.length-1)t+=REST_EX});return t}
+// ==================== TIMER ENGINE (async, rep-by-rep) ====================
+let sessionId=0,workoutExIdx=0;
+const DOWN_MS=1500,UP_MS=1500;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+async function waitPause(id){while(timerPaused&&id===sessionId)await sleep(100)}
+
+function calcTotalTime(){let t=0;EXERCISES.forEach((e,i)=>{t+=3;const d=e.type==='time'?e.duration:e.reps*3;t+=d*e.sets+REST_SET*(e.sets-1);if(i<EXERCISES.length-1)t+=REST_EX});return t}
+
 function startWorkout(){
-  initAudio();requestWakeLock();currentExIdx=0;currentSet=0;totalTimerSecs=calcTotalTime();elapsedTimerSecs=0;workoutStartTime=Date.now();
+  initAudio();requestWakeLock();
+  sessionId++;workoutExIdx=0;totalTimerSecs=calcTotalTime();elapsedTimerSecs=0;workoutStartTime=Date.now();timerPaused=false;
   $('timerStart').classList.add('hidden');$('timerDone').classList.add('hidden');$('timerArea').classList.remove('hidden');
-  startExercisePhase();
+  $('cmdBadge').style.display='none';$('timerRepInfo').textContent='';
+  runWorkoutSession(sessionId);
 }
-function startExercisePhase(){
-  const e=EXERCISES[currentExIdx];currentPhase='exercise';timeLeft=e.type==='time'?e.duration:e.reps*REP_DUR;
-  $('exName').textContent=e.name;$('exDetail').textContent=e.type==='time'?`${e.duration}초 × ${e.sets}세트`:`${e.reps}회 × ${e.sets}세트`;
-  $('timerSetInfo').textContent=`세트 ${currentSet+1} / ${e.sets}`;playTone('down');runTimer();
+
+async function runWorkoutSession(myId){
+  for(;workoutExIdx<EXERCISES.length;workoutExIdx++){
+    if(myId!==sessionId)return;
+    const ex=EXERCISES[workoutExIdx];
+    for(let si=0;si<ex.sets;si++){
+      if(myId!==sessionId)return;
+      $('exName').textContent=ex.name;
+      $('exDetail').textContent=ex.type==='time'?`${ex.duration}초 × ${ex.sets}세트`:`${ex.reps}회 × ${ex.sets}세트`;
+      $('timerSetInfo').textContent=`세트 ${si+1} / ${ex.sets}`;
+      $('timerRepInfo').textContent='';
+      $('cmdBadge').style.display='none';
+
+      await countdown321(myId);
+      if(myId!==sessionId)return;
+
+      if(ex.type==='time'){
+        await runTimedExercise(myId,ex);
+      } else {
+        await runRepExercise(myId,ex,si);
+      }
+      if(myId!==sessionId)return;
+
+      playTone('up');
+      if(si<ex.sets-1){
+        await runRest(myId,REST_SET,'세트 간 휴식');
+      } else if(workoutExIdx<EXERCISES.length-1){
+        await runRest(myId,REST_EX,'다음 운동 준비');
+      }
+      if(myId!==sessionId)return;
+    }
+  }
+  if(myId===sessionId)completeWorkout();
 }
-function startRestPhase(dur,label){currentPhase=label;timeLeft=dur;$('exName').textContent='⏸️ 휴식';$('exDetail').textContent=label==='rest_ex'?'다음 운동 준비':'세트 간 휴식';$('timerSetInfo').textContent=dur+'초';runTimer()}
-function runTimer(){
-  clearInterval(timerInterval);timerPaused=false;$('btnPause').textContent='일시정지';updateTimerDisplay();
-  timerInterval=setInterval(()=>{if(timerPaused)return;timeLeft--;elapsedTimerSecs++;updateTimerDisplay();if(timeLeft<=3&&timeLeft>0)playTone('tick');if(timeLeft<=0){clearInterval(timerInterval);advanceTimer()}},1000);
+
+async function countdown321(myId){
+  const ov=$('countdownOverlay'),num=$('countdownNum');
+  ov.classList.add('active');
+  for(let t=3;t>0;t--){
+    if(myId!==sessionId){ov.classList.remove('active');return}
+    await waitPause(myId);
+    num.textContent=t;
+    num.style.animation='none';void num.offsetWidth;num.style.animation='countPop .4s ease';
+    playTone('tick');
+    await sleep(1000);
+    elapsedTimerSecs++;
+    updateProgressBar();
+  }
+  ov.classList.remove('active');
 }
-function updateTimerDisplay(){
-  const m=Math.floor(timeLeft/60),s=timeLeft%60;$('timerDisp').textContent=`${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-  $('timerProgress').style.width=Math.min(100,elapsedTimerSecs/totalTimerSecs*100)+'%';
-  $('timerDisp').style.color=currentPhase==='exercise'?'var(--accent2)':'var(--green)';
+
+async function runRepExercise(myId,ex,setIdx){
+  const badge=$('cmdBadge');
+  for(let i=1;i<=ex.reps;i++){
+    if(myId!==sessionId)return;
+    await waitPause(myId);
+    if(myId!==sessionId)return;
+
+    // DOWN phase
+    $('timerRepInfo').textContent=`${i} / ${ex.reps}`;
+    badge.style.display='';
+    badge.className='cmd-badge cmd-down';
+    badge.textContent='⬇ 내려가세요';
+    badge.style.animation='none';void badge.offsetWidth;badge.style.animation='fadeSlide .3s ease';
+    $('timerDisp').style.color='var(--blue)';
+    playTone('down');
+
+    await sleep(DOWN_MS);
+    if(myId!==sessionId)return;
+    await waitPause(myId);
+    if(myId!==sessionId)return;
+
+    // UP phase
+    badge.className='cmd-badge cmd-up';
+    badge.textContent='⬆ 올라가세요';
+    badge.style.animation='none';void badge.offsetWidth;badge.style.animation='fadeSlide .3s ease';
+    $('timerDisp').style.color='var(--green)';
+    playTone('up');
+
+    await sleep(UP_MS);
+    elapsedTimerSecs+=3;
+    updateProgressBar();
+
+    // Update timer display with elapsed set time
+    const elapsed=i*3;
+    const total=ex.reps*3;
+    const remain=total-elapsed;
+    const m=Math.floor(remain/60),s=remain%60;
+    $('timerDisp').textContent=`${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+  }
+  badge.style.display='none';
+  $('timerRepInfo').textContent='✅ 세트 완료!';
 }
-function advanceTimer(){
-  const e=EXERCISES[currentExIdx];
-  if(currentPhase==='exercise'){playTone('up');currentSet++;if(currentSet<e.sets)startRestPhase(REST_SET,'rest_set');else{currentExIdx++;currentSet=0;if(currentExIdx<EXERCISES.length)startRestPhase(REST_EX,'rest_ex');else completeWorkout()}}
-  else startExercisePhase();
+
+async function runTimedExercise(myId,ex){
+  const badge=$('cmdBadge');
+  badge.style.display='';
+  badge.className='cmd-badge cmd-hold';
+  badge.textContent='💪 버텨!';
+  $('timerDisp').style.color='var(--orange)';
+
+  for(let t=ex.duration;t>0;t--){
+    if(myId!==sessionId)return;
+    await waitPause(myId);
+    if(myId!==sessionId)return;
+
+    const m=Math.floor(t/60),s=t%60;
+    $('timerDisp').textContent=`${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+    $('timerRepInfo').textContent=`${ex.duration-t+1} / ${ex.duration}초`;
+
+    if(t<=5)playTone('tick');
+    if(t===Math.floor(ex.duration/2)){badge.textContent='💪 반 왔다!';}
+
+    await sleep(1000);
+    elapsedTimerSecs++;
+    updateProgressBar();
+  }
+  $('timerDisp').textContent='00:00';
+  badge.style.display='none';
+  $('timerRepInfo').textContent='✅ 세트 완료!';
 }
+
+async function runRest(myId,duration,label){
+  $('exName').textContent='⏸️ 휴식';
+  $('exDetail').textContent=label;
+  $('cmdBadge').style.display='none';
+  $('timerDisp').style.color='var(--text2)';
+  $('timerRepInfo').textContent='';
+
+  for(let t=duration;t>0;t--){
+    if(myId!==sessionId)return;
+    await waitPause(myId);
+    if(myId!==sessionId)return;
+
+    const m=Math.floor(t/60),s=t%60;
+    $('timerDisp').textContent=`${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+    $('timerSetInfo').textContent=`휴식 ${t}초`;
+    if(t<=3)playTone('tick');
+    await sleep(1000);
+    elapsedTimerSecs++;
+    updateProgressBar();
+  }
+}
+
+function updateProgressBar(){$('timerProgress').style.width=Math.min(100,elapsedTimerSecs/totalTimerSecs*100)+'%'}
+
 function togglePause(){timerPaused=!timerPaused;$('btnPause').textContent=timerPaused?'▶ 재개':'일시정지'}
-function skipExercise(){clearInterval(timerInterval);currentExIdx++;currentSet=0;if(currentExIdx<EXERCISES.length)startExercisePhase();else completeWorkout()}
-function stopWorkout(){clearInterval(timerInterval);releaseWakeLock();$('timerArea').classList.add('hidden');$('timerStart').classList.remove('hidden')}
+function skipExercise(){
+  sessionId++; // kill current async loop
+  $('countdownOverlay').classList.remove('active');
+  workoutExIdx++;
+  if(workoutExIdx<EXERCISES.length){
+    // Start new session from next exercise
+    const newId=++sessionId;
+    timerPaused=false;$('btnPause').textContent='일시정지';
+    runWorkoutSession(newId);
+  } else {
+    completeWorkout();
+  }
+}
+function stopWorkout(){sessionId++;releaseWakeLock();$('timerArea').classList.add('hidden');$('timerStart').classList.remove('hidden');$('countdownOverlay').classList.remove('active')}
 function completeWorkout(){
-  clearInterval(timerInterval);releaseWakeLock();playTone('done');
+  releaseWakeLock();playTone('done');
   const dur=(Date.now()-workoutStartTime)/60000,avgMET=EXERCISES.reduce((s,e)=>s+e.met,0)/EXERCISES.length;
   const cal=Math.round(avgMET*3.5*currentWeight/200*dur);
   const recs=getLS('fs_workoutRecords',[]);recs.push({date:today(),duration:Math.round(dur),calories:cal,exercises:EXERCISES.map(e=>e.name)});setLS('fs_workoutRecords',recs);

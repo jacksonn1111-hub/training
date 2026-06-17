@@ -353,11 +353,11 @@ plank:`<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><circle cx="1
 const EX_COLORS={squat:'#a29bfe',lunge:'#74b9ff',pushup:'#fdcb6e',crunch:'#ff6b6b',plank:'#00b894'};
 
 const EXERCISES=[
-  {id:'squat',name:'스쿼트',reps:15,sets:3,type:'rep',met:5.0},
-  {id:'lunge',name:'런지',reps:10,sets:3,type:'rep',met:4.0},
-  {id:'pushup',name:'푸쉬업',reps:10,sets:3,type:'rep',met:3.8},
-  {id:'crunch',name:'바이시클크런치',reps:10,sets:3,type:'rep',met:3.5},
-  {id:'plank',name:'플랭크',duration:45,sets:3,type:'time',met:3.8}
+  {id:'squat',name:'스쿼트',reps:15,sets:3,type:'rep',met:5.0,img:'ex-squat.png'},
+  {id:'lunge',name:'런지',reps:10,sets:3,type:'rep',met:4.0,img:'ex-lunge.png'},
+  {id:'pushup',name:'푸쉬업',reps:10,sets:3,type:'rep',met:3.8,img:'ex-pushup.png'},
+  {id:'crunch',name:'바이시클크런치',reps:10,sets:3,type:'rep',met:3.5,img:'ex-crunch.png'},
+  {id:'plank',name:'플랭크',duration:45,sets:3,type:'time',met:3.8,img:'ex-plank.png'}
 ];
 const REP_DUR=3,REST_SET=30,REST_EX=45;
 
@@ -536,7 +536,8 @@ function renderExercisePreview(){
   $('exercisePreview').innerHTML=EXERCISES.map(ex=>`
     <div class="ex-item">
       <div class="ex-thumb" onclick="showExImage('${ex.id}')" style="border:1.5px solid ${EX_COLORS[ex.id]}22">
-        ${EX_SVG[ex.id]}
+        <img src="${ex.img}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" style="width:100%;height:100%;object-fit:cover;border-radius:8px">
+        <div style="display:none;width:100%;height:100%">${EX_SVG[ex.id]}</div>
       </div>
       <div class="ex-info">
         <div class="name">${ex.name}</div>
@@ -546,13 +547,21 @@ function renderExercisePreview(){
   `).join('');
 }
 function showExImage(id){
-  $('imgModalImg').style.display='none';
-  $('imgModalLabel').textContent=EXERCISES.find(e=>e.id===id).name;
-  // Show large SVG in modal
-  let container=$('imgModal').querySelector('.ex-svg-large');
-  if(!container){container=document.createElement('div');container.className='ex-svg-large';$('imgModal').insertBefore(container,$('imgModalLabel'))}
-  const largeSvg=EX_SVG[id].replace('viewBox="0 0 80 80"','viewBox="0 0 80 80" width="240" height="240"');
-  container.innerHTML=largeSvg;
+  const ex=EXERCISES.find(e=>e.id===id);
+  $('imgModalLabel').textContent=ex.name;
+  // Try real image first
+  const img=$('imgModalImg');
+  img.src=ex.img;
+  img.style.display='block';
+  img.onerror=function(){
+    this.style.display='none';
+    let c=$('imgModal').querySelector('.ex-svg-large');
+    if(!c){c=document.createElement('div');c.className='ex-svg-large';$('imgModal').insertBefore(c,$('imgModalLabel'))}
+    c.innerHTML=EX_SVG[id].replace('viewBox="0 0 80 80"','viewBox="0 0 80 80" width="260" height="260"');
+  };
+  // Clear SVG fallback if image loads
+  let c=$('imgModal').querySelector('.ex-svg-large');
+  if(c)c.innerHTML='';
   $('imgModal').classList.add('show');
 }
 

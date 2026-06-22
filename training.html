@@ -300,7 +300,8 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
   <div style="margin-top:8px">
     <select class="input" id="runShoe">
       <option value="Structure26">Structure 26 (이지/회복)</option>
-      <option value="Novablast5">Novablast 5 (스피드/롱런)</option>
+      <option value="EvoSL">Evo SL (템포/인터벌)</option>
+      <option value="Novablast5">Novablast 5 (롱런)</option>
       <option value="AdiosPro4">Adios Pro 4 (레이스)</option>
       <option value="other">기타</option>
     </select>
@@ -1053,7 +1054,7 @@ function renderPaceChart(){
 }
 function copyAIPrompt(){
   const r=getLS('fs_runRecords',[]),w=getLS('fs_workoutRecords',[]);
-  const prompt=`나의 러닝 데이터를 분석해주세요.\n인적사항: 남성 174cm ${currentWeight}kg, 마운자로 복용 중, 목표 체중 71kg\n러닝 목표: 2026년 12월 sub-55 10K (5:30/km)\n러닝화: Structure26(이지/회복), Novablast5(템포/인터벌/롱런), Adios Pro 4(레이스)\n\n러닝 기록 (${r.length}회):\n${r.map(x=>`${x.date}: ${x.distance}km, ${x.time}, 페이스 ${formatPace(x.paceSeconds)}/km, ${x.shoe}, ${x.calories}kcal`).join('\n')}\n\n홈트 기록 (${w.length}회):\n${w.slice(-10).map(x=>`${x.date}: ${x.duration}분, ${x.calories}kcal`).join('\n')}\n\n분석 요청: 현재 페이스 추이, 훈련 볼륨 적정성, 부상 위험도, sub-55 달성 가능성, 다음 주 훈련 조언`;
+  const prompt=`나의 러닝 데이터를 분석해주세요.\n인적사항: 남성 174cm ${currentWeight}kg, 마운자로 복용 중, 목표 체중 71kg\n러닝 목표: 2026년 12월 sub-55 10K (5:30/km)\n러닝화: Structure26(이지/회복), Evo SL(템포/인터벌), Novablast5(롱런), Adios Pro 4(레이스)\n\n러닝 기록 (${r.length}회):\n${r.map(x=>`${x.date}: ${x.distance}km, ${x.time}, 페이스 ${formatPace(x.paceSeconds)}/km, ${x.shoe}, ${x.calories}kcal`).join('\n')}\n\n홈트 기록 (${w.length}회):\n${w.slice(-10).map(x=>`${x.date}: ${x.duration}분, ${x.calories}kcal`).join('\n')}\n\n분석 요청: 현재 페이스 추이, 훈련 볼륨 적정성, 부상 위험도, sub-55 달성 가능성, 다음 주 훈련 조언`;
   navigator.clipboard.writeText(prompt).then(()=>{const b=event.target;b.textContent='✅ 복사 완료!';setTimeout(()=>b.textContent='📋 클립보드 복사',2000)});
 }
 function renderWeekPlan(){

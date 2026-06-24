@@ -61,6 +61,17 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 .run-log-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
 .run-log-item .run-date{font-size:12px;color:var(--text3);width:50px;flex-shrink:0}.run-log-item .run-info{flex:1}
 .run-log-item .run-dist{font-family:monospace;font-size:15px;font-weight:600}.run-log-item .run-pace{font-size:12px;color:var(--primary2)}.run-log-item .run-del{color:var(--red);font-size:18px;padding:4px 8px;cursor:pointer}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}
+.cal-header{font-size:11px;font-weight:600;color:var(--text3);padding:6px 0}
+.cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;position:relative;transition:background .2s;min-height:36px}
+.cal-day:empty{cursor:default}
+.cal-day:not(:empty):hover{background:var(--surface3)}
+.cal-day.today{border:1.5px solid var(--primary)}
+.cal-day.has-data{background:var(--pglow)}
+.cal-day .dots{display:flex;gap:2px;position:absolute;bottom:2px}
+.cal-day .dot{width:4px;height:4px;border-radius:50%}
+.day-detail-section{margin-bottom:16px}
+.day-detail-section h4{font-size:13px;font-weight:700;color:var(--primary2);margin-bottom:8px}
 .week-card{padding:12px;border-radius:var(--rsm);background:var(--surface2);margin-bottom:8px;border-left:3px solid var(--border)}
 .week-card.current{border-left-color:var(--primary);background:var(--pglow)}
 .week-card .wk-title{font-size:13px;font-weight:700;margin-bottom:4px}.week-card .wk-detail{font-size:12px;color:var(--text2);line-height:1.5}
@@ -138,16 +149,6 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 <div class="card"><div class="card-title">📊 기록</div><div class="stats-row" id="wtStats"></div></div>
 </div>
 
-<!-- INBODY -->
-<div class="tab-page" id="tabIB">
-<div class="card"><div class="card-title">📊 체성분 변화</div><div class="chart-wrap" style="height:250px"><canvas id="ibChart"></canvas></div></div>
-<div class="card"><div class="card-title">📋 측정 기록</div><div style="overflow-x:auto"><table class="ib-table" id="ibTable"></table></div></div>
-<div class="card"><div class="card-title">✏️ 새 측정</div>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><input class="input" id="ibDt" type="date"><input class="input" id="ibWt" type="number" step="0.1" placeholder="체중"><input class="input" id="ibMu" type="number" step="0.1" placeholder="골격근량"><input class="input" id="ibFt" type="number" step="0.1" placeholder="체지방량"><input class="input" id="ibFp" type="number" step="0.1" placeholder="체지방률%"><input class="input" id="ibBm" type="number" step="0.1" placeholder="BMI"><input class="input" id="ibWh" type="number" step="0.01" placeholder="WHR"><input class="input" id="ibVi" type="number" placeholder="내장지방"><input class="input" id="ibSc" type="number" placeholder="인바디점수"></div>
-<button class="btn btn-primary btn-full mt-8" onclick="addIB()">저장</button></div>
-<div class="card"><div class="card-title">🎯 목표 예측</div><div id="goalProj"></div></div>
-</div>
-
 <!-- SETTINGS -->
 <div class="tab-page" id="tabSet">
 <div class="card"><div class="card-title">👤 프로필</div>
@@ -164,7 +165,6 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 <button class="nav-btn" onclick="sw('tabRun',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="2"/><path d="M4 20l4-8 4 4 4-8 4 4"/></svg><span>러닝</span></button>
 <button class="nav-btn" onclick="sw('tabDiet',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><path d="M6 1v3M10 1v3M14 1v3"/></svg><span>식단</span></button>
 <button class="nav-btn" onclick="sw('tabWt',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span>웨이트</span></button>
-<button class="nav-btn" onclick="sw('tabIB',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 014 4v2a4 4 0 01-8 0V6a4 4 0 014-4zM6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg><span>인바디</span></button>
 <button class="nav-btn" onclick="sw('tabSet',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9c.26.56.82.96 1.51 1H21a2 2 0 010 4h-.09c-.69.05-1.25.45-1.51 1z"/></svg><span>설정</span></button>
 </nav>
 
@@ -246,10 +246,6 @@ function rWS(){const r=gL('fs_workoutRecords',[]),tm=r.filter(x=>x.date.startsWi
 
 // INBODY
 function gIB(){let d=gL('fs_inbody',null);if(!d){d=IB_INIT.map(x=>({d:x.d,w:x.w,m:x.m,f:x.f,fp:x.fp,bmi:x.bmi,whr:x.whr,vi:x.vi,sc:x.sc}));sL('fs_inbody',d)}return d}
-function rIB(){const data=gIB();$('inbodyTable' ).innerHTML='<tr><th>날짜</th><th>체중</th><th>골격근</th><th>체지방</th><th>체지방률</th><th>BMI</th><th>점수</th></tr>'+data.map(d=>`<tr><td>${d.d.slice(5)}</td><td>${d.w}</td><td>${d.m}</td><td>${d.f}</td><td>${d.fp}%</td><td>${d.bmi}</td><td>${d.sc}</td></tr>`).join('');
-const ctx=$('ibChart');if(window._iC)window._iC.destroy();window._iC=new Chart(ctx,{type:'line',data:{labels:data.map(d=>d.d.slice(5)),datasets:[{label:'체중',data:data.map(d=>d.w),borderColor:'#1D9E75',tension:.3,yAxisID:'y'},{label:'골격근',data:data.map(d=>d.m),borderColor:'#74b9ff',tension:.3,yAxisID:'y1'},{label:'체지방',data:data.map(d=>d.f),borderColor:'#ff6b6b',tension:.3,yAxisID:'y1'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#80a898',font:{size:10}}}},scales:{x:{ticks:{color:'#4a7868',font:{size:9}},grid:{color:'#24383022'}},y:{position:'left',ticks:{color:'#4a7868',font:{size:9}},grid:{color:'#24383022'}},y1:{position:'right',ticks:{color:'#4a7868',font:{size:9}},grid:{display:false}}}}});
-if(data.length>=2){const rc=data.slice(-4),rate=(rc[0].w-rc[rc.length-1].w)/rc.length*2,rem=data[data.length-1].w-71;if(rate>0){const wl=Math.ceil(rem/rate),est=new Date();est.setDate(est.getDate()+wl*7);$('goalProj').innerHTML=`<div class="text-sm">감량 속도: 주당 <b>${rate.toFixed(1)}kg</b></div><div class="text-sm mt-8">남은: <b>${rem.toFixed(1)}kg</b></div><div class="text-sm mt-8">예상 도달: <b>${ds(est)}</b> (약 ${wl}주)</div>`}else $('goalProj').innerHTML='<div class="text-sm text-muted">데이터 부족</div>'}}
-function addIB(){const d={d:$('ibDt').value||td(),w:parseFloat($('ibWt').value)||0,m:parseFloat($('ibMu').value)||0,f:parseFloat($('ibFt').value)||0,fp:parseFloat($('ibFp').value)||0,bmi:parseFloat($('ibBm').value)||0,whr:parseFloat($('ibWh').value)||0,vi:parseInt($('ibVi').value)||0,sc:parseInt($('ibSc').value)||0};if(!d.w)return;const data=gIB();data.push(d);data.sort((a,b)=>a.d.localeCompare(b.d));sL('fs_inbody',data);const p=gP();p.weight=d.w;sL('fs_profile',p);['ibDt','ibWt','ibMu','ibFt','ibFp','ibBm','ibWh','ibVi','ibSc'].forEach(id=>$(id).value='');rIB();rHome()}
 
 // CALENDAR
 let calVD=new Date();
@@ -299,11 +295,11 @@ function closeModal(id){$(id).classList.remove('show')}
 // SETTINGS
 function saveProf(){const p=gP();p.height=parseInt($('sH').value)||174;p.weight=parseFloat($('sW').value)||76;p.goalWeight=parseFloat($('sGW').value)||71;sL('fs_profile',p);rHome();alert('저장됨')}
 function saveDG(){const p=gP();p.calGoal=parseInt($('sCG').value)||1750;p.protGoal=parseInt($('sPG').value)||145;sL('fs_profile',p);uDT();alert('저장됨')}
-function exportCSV(){let csv='날짜,거리,시간,페이스,신발,칼로리,심박\n';gL('fs_runRecords',[]).forEach(r=>{csv+=`${r.date},${r.distance},${r.time},${fP(r.paceSeconds)},${r.shoe},${r.calories},${r.hr||''}\n`});csv+='\n날짜,체중,골격근,체지방,체지방률,BMI,점수\n';gIB().forEach(d=>{csv+=`${d.d},${d.w},${d.m},${d.f},${d.fp},${d.bmi},${d.sc}\n`});const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`fitsync_${td()}.csv`;a.click()}
+function exportCSV(){let csv='날짜,거리,시간,페이스,신발,칼로리,심박\n';gL('fs_runRecords',[]).forEach(r=>{csv+=`${r.date},${r.distance},${r.time},${fP(r.paceSeconds)},${r.shoe},${r.calories},${r.hr||''}\n`});const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`fitsync_${td()}.csv`;a.click()}
 
 // INIT
 function init(){const p=gP();$('sH').value=p.height;$('sW').value=p.weight;$('sGW').value=p.goalWeight;$('sCG').value=p.calGoal;$('sPG').value=p.protGoal;
-rHome();$('runDate').value=td();rRS();rTP();rRL();rPC();rSM();rWP();rDL();rML();rDS();rEP();rWS();rIB();$('ibDt').value=td()}
+rHome();$('runDate').value=td();rRS();rTP();rRL();rPC();rSM();rWP();rDL();rML();rDS();rEP();rWS()}
 document.addEventListener('touchstart',()=>initA(),{once:true});
 document.addEventListener('click',()=>initA(),{once:true});
 init();

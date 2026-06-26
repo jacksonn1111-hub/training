@@ -160,6 +160,16 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 </div>
 
 </div>
+
+<!-- Day Detail Modal -->
+<div class="modal-overlay" id="dayModal">
+<div class="modal-content">
+<button class="modal-close" onclick="closeModal('dayModal')">&times;</button>
+<h3 style="font-size:16px;font-weight:700;margin-bottom:16px" id="dayModalTitle"></h3>
+<div id="dayModalBody"></div>
+</div>
+</div>
+
 <nav class="bottom-nav">
 <button class="nav-btn active" onclick="sw('tabHome',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-8 9 8M5 10v10h14V10"/></svg><span>홈</span></button>
 <button class="nav-btn" onclick="sw('tabRun',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="2"/><path d="M4 20l4-8 4 4 4-8 4 4"/></svg><span>러닝</span></button>

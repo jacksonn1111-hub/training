@@ -137,6 +137,9 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 <div style="display:flex;gap:8px;margin-top:8px"><input class="input" id="cName" placeholder="직접 입력"><input class="input" id="cCal" placeholder="kcal" type="number" style="width:60px"><input class="input" id="cProt" placeholder="단백질" type="number" style="width:55px"></div>
 <button class="btn btn-primary btn-full mt-8" onclick="addMeal()">추가</button><div id="mealList" class="mt-8"></div></div>
 <div class="card"><div class="card-title">📈 주간 통계</div><div class="stats-row" id="wkStats"></div></div>
+<div class="card"><div class="card-title">🤖 식단·운동 점검 프롬프트</div>
+<div style="display:flex;gap:8px"><select class="input" id="reviewDays"><option value="3">최근 3일</option><option value="7" selected>최근 7일</option><option value="14">최근 14일</option></select><button class="btn btn-primary" id="reviewBtn" onclick="copyReview()" style="flex-shrink:0">📋 복사</button></div>
+</div>
 </div>
 
 <!-- WEIGHT -->
@@ -183,7 +186,7 @@ const PS=new Date(2026,5,15),GD=new Date(2026,11,13),RS=30,RX=45,DM=1500,UM=1500
 const EX_SVG={squat:'<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><circle cx="40" cy="14" r="7" fill="none" stroke="#25c78f" stroke-width="2"/><path d="M40 21v12M28 52l12-19 12 19M24 72l8-20M56 72l-8-20M30 38h20" fill="none" stroke="#25c78f" stroke-width="2" stroke-linecap="round"/></svg>',lunge:'<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><circle cx="36" cy="12" r="7" fill="none" stroke="#74b9ff" stroke-width="2"/><path d="M36 19v14M36 33l-14 22M36 33l18 14M22 55l-4 18M54 47l8 16M28 30h16" fill="none" stroke="#74b9ff" stroke-width="2" stroke-linecap="round"/></svg>',pushup:'<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="38" r="6" fill="none" stroke="#fdcb6e" stroke-width="2"/><path d="M22 38h38M60 38l6 14M22 38l-6 14M40 38v-10M34 28h12" fill="none" stroke="#fdcb6e" stroke-width="2" stroke-linecap="round"/></svg>',crunch:'<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><circle cx="28" cy="28" r="7" fill="none" stroke="#ff6b6b" stroke-width="2"/><path d="M28 35l8 16M36 51h20M28 35l-8 4M56 51l-4 16M36 51l-10 14M32 42l14-8" fill="none" stroke="#ff6b6b" stroke-width="2" stroke-linecap="round"/></svg>',plank:'<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><circle cx="14" cy="36" r="6" fill="none" stroke="#a29bfe" stroke-width="2"/><path d="M20 36h44M20 36l-2 18M64 36l4 18M38 36v-10M32 26h12" fill="none" stroke="#a29bfe" stroke-width="2" stroke-linecap="round"/></svg>'};
 const EC={squat:'#25c78f',lunge:'#74b9ff',pushup:'#fdcb6e',crunch:'#ff6b6b',plank:'#a29bfe'};
 const EXS=[{id:'squat',name:'스쿼트',reps:15,sets:3,type:'rep',met:5.0,img:'ex-squat.png'},{id:'lunge',name:'런지',reps:10,sets:3,type:'rep',met:4.0,img:'ex-lunge.png'},{id:'pushup',name:'푸쉬업',reps:10,sets:3,type:'rep',met:3.8,img:'ex-pushup.png'},{id:'crunch',name:'바이시클크런치',reps:10,sets:3,type:'rep',met:3.5,img:'ex-crunch.png'},{id:'plank',name:'플랭크',duration:45,sets:3,type:'time',met:3.8,img:'ex-plank.png'}];
-const DP={breakfast:{l:'☀️ 아침',i:[{id:'eggs2',n:'삶은 계란 2개',c:156,p:14},{id:'egg_extra',n:'계란 +1개',c:78,p:7},{id:'banana',n:'바나나',c:100,p:1}]},lunch:{l:'🍚 점심',i:[{id:'chicken',n:'닭가슴살 150g',c:165,p:46},{id:'pasta',n:'알리오올리오 80g',c:330,p:10},{id:'potato',n:'삶은 감자',c:120,p:3},{id:'salad',n:'양배추 샐러드',c:60,p:1}]},dinner:{l:'🌙 저녁',i:[{id:'eggs2d',n:'삶은 계란 2개',c:156,p:14},{id:'egg_extra_d',n:'계란 +1개',c:78,p:7},{id:'tofu',n:'두부 반모(150g)',c:130,p:13}]},snack:{l:'🍎 간식',i:[{id:'yogurt',n:'그릭요거트 150g',c:90,p:10},{id:'blueberry',n:'블루베리 50g',c:30,p:0},{id:'almond',n:'아몬드 15~20알',c:100,p:4}]}};
+const DP={breakfast:{l:'☀️ 아침',i:[{id:'eggs2',n:'삶은 계란 2개',c:156,p:14},{id:'egg_extra',n:'계란 +1개',c:78,p:7},{id:'banana',n:'바나나',c:100,p:1}]},lunch:{l:'🍚 점심',i:[{id:'chicken',n:'닭가슴살 150g',c:165,p:46},{id:'pasta',n:'알리오올리오 80g',c:330,p:10},{id:'potato',n:'삶은 감자',c:120,p:3},{id:'salad',n:'양배추 샐러드',c:60,p:1}]},dinner:{l:'🌙 저녁',i:[{id:'eggs2d',n:'삶은 계란 2개',c:156,p:14},{id:'egg_extra_d',n:'계란 +1개',c:78,p:7},{id:'tofu',n:'두부 반모(150g)',c:130,p:13}]},snack:{l:'🍎 간식',i:[{id:'protein_shake',n:'NS WPI 쉐이크 (운동후)',c:114,p:26},{id:'yogurt',n:'그릭요거트 150g',c:90,p:10},{id:'blueberry',n:'블루베리 50g',c:30,p:0},{id:'almond',n:'아몬드 15~20알',c:100,p:4}]}};
 const GM={korean:[{n:'김치찌개',c:200,p:12},{n:'된장찌개',c:150,p:10},{n:'비빔밥',c:500,p:15},{n:'불고기',c:350,p:25},{n:'제육볶음',c:400,p:22},{n:'김밥 1줄',c:320,p:10},{n:'삼겹살',c:580,p:30},{n:'갈비탕',c:450,p:28},{n:'설렁탕',c:350,p:25},{n:'삼계탕',c:600,p:45},{n:'보쌈',c:400,p:30}],western:[{n:'시저샐러드',c:350,p:15},{n:'스테이크200g',c:500,p:40},{n:'파스타(토마토)',c:450,p:14},{n:'햄버거',c:500,p:25},{n:'오믈렛',c:300,p:18},{n:'연어스테이크',c:350,p:35}],japanese:[{n:'초밥 8pcs',c:400,p:18},{n:'라멘',c:500,p:20},{n:'돈카츠',c:500,p:25},{n:'카레라이스',c:550,p:15},{n:'사시미',c:200,p:30},{n:'연어덮밥',c:480,p:28}],chinese:[{n:'짜장면',c:600,p:15},{n:'짬뽕',c:500,p:18},{n:'탕수육',c:550,p:20},{n:'볶음밥',c:500,p:14},{n:'마라탕',c:500,p:20},{n:'군만두 8pc',c:400,p:14}]};
 const RP=[['휴식','이지런 5km','근력운동','템포런 4km','휴식','이지런 5km','롱런 8km'],['휴식','이지런 5km','근력운동','템포런 5km','휴식','이지런 5km','롱런 9km'],['휴식','이지런 6km','근력운동','템포런 5km','휴식','이지런 5km','롱런 10km'],['휴식','이지런 5km','근력운동','템포런 4km','휴식','이지런 4km','롱런 7km'],['휴식','이지런 6km','근력운동','템포런 5km','휴식','이지런 5km','롱런 10km'],['휴식','이지런 6km','근력운동','템포런 5km','휴식','이지런 6km','롱런 11km'],['휴식','이지런 6km','인터벌 400m×6','이지런 5km','휴식','템포런 5km','롱런 11km'],['휴식','이지런 6km','인터벌 400m×8','이지런 5km','휴식','템포런 6km','롱런 12km'],['휴식','이지런 5km','인터벌 400m×4','이지런 5km','휴식','이지런 5km','롱런 8km'],['휴식','이지런 6km','인터벌 800m×4','이지런 6km','휴식','템포런 6km','롱런 12km'],['휴식','이지런 6km','인터벌 800m×5','이지런 6km','휴식','템포런 6km','롱런 13km'],['휴식','이지런 6km','인터벌 800m×6','이지런 6km','휴식','템포런 7km','롱런 14km'],['휴식','이지런 6km','인터벌 1km×4','이지런 6km','휴식','템포런 7km','롱런 13km'],['휴식','이지런 5km','인터벌 1km×3','이지런 5km','휴식','이지런 5km','롱런 9km'],['휴식','이지런 7km','인터벌 1km×5','이지런 6km','휴식','템포런 7km','롱런 14km'],['휴식','이지런 5km','이지런 5km','휴식','이지런 3km','5km TT','이지런 5km'],['휴식','이지런 7km','인터벌 1km×5','이지런 6km','휴식','템포런 8km','롱런 14km'],['휴식','이지런 7km','인터벌 1km×6','이지런 6km','휴식','템포런 8km','롱런 15km'],['휴식','이지런 5km','인터벌 1km×3','이지런 5km','휴식','이지런 5km','롱런 10km'],['휴식','이지런 6km','인터벌 2km×3','이지런 6km','휴식','RP런 8km','롱런 12km'],['휴식','이지런 6km','인터벌 2km×3','이지런 6km','휴식','RP런 8km','롱런 13km'],['휴식','이지런 6km','인터벌 1km×6','이지런 6km','휴식','RP런 10km','이지런 6km'],['휴식','이지런 6km','인터벌 2km×4','이지런 6km','휴식','RP런 10km','이지런 6km'],['휴식','이지런 5km','인터벌 1km×3','이지런 5km','휴식','이지런 5km','롱런 8km'],['휴식','이지런 5km','RP 3km','이지런 4km','휴식','이지런 4km','이지런 6km'],['휴식','이지런 4km','RP 2km','이지런 3km','완전 휴식','조깅 2km','🏁 10K 레이스']];
 const IB_INIT=[{d:'2026-04-22',w:87.0,m:34.8,f:26.2,fp:30.1,bmi:28.7,whr:.99,vi:10,sc:69},{d:'2026-05-12',w:84.4,m:34.7,f:23.6,fp:27.9,bmi:27.9,whr:.93,vi:9,sc:71},{d:'2026-05-26',w:81.3,m:34.0,f:21.5,fp:26.4,bmi:26.9,whr:.88,vi:8,sc:72},{d:'2026-06-05',w:78.6,m:33.4,f:19.8,fp:25.2,bmi:26.0,whr:.90,vi:7,sc:73},{d:'2026-06-11',w:77.4,m:33.9,f:17.9,fp:23.1,bmi:25.6,whr:.90,vi:7,sc:76},{d:'2026-06-17',w:76.5,m:33.3,f:18.0,fp:23.6,bmi:25.3,whr:.90,vi:7,sc:74},{d:'2026-06-23',w:76.0,m:33.3,f:17.3,fp:22.8,bmi:25.1,whr:.89,vi:7,sc:75}];
@@ -235,6 +238,38 @@ function addMeal(){let n,c,p;const sv=$('mSel').value;if(sv){const[cat,idx]=sv.s
 function rML(){const ml=gL('fs_generalMeals_'+td(),[]);$('mealList').innerHTML=ml.map((m,i)=>`<div class="check-item"><div class="check-info"><div class="check-name">${m.n||m.name}</div><div class="check-meta">${m.c||m.cal||0}kcal · ${m.p||m.prot||0}g · ${m.t||m.time||''}</div></div><span style="color:var(--red);cursor:pointer;font-size:16px" onclick="rmMeal(${i})">✕</span></div>`).join('')}
 function rmMeal(i){const k='fs_generalMeals_'+td(),m=gL(k,[]);m.splice(i,1);sL(k,m);rML();uDT()}
 function rDS(){const now=new Date();let wc=0,wp=0,wd=0;for(let i=0;i<7;i++){const d=new Date(now);d.setDate(d.getDate()-i);const s=ds(d),ch=gL('fs_dietChecks_'+s,{}),ml=gL('fs_generalMeals_'+s,[]);let dc=0,dp=0,has=false;const ct=new Set();Object.entries(ch).forEach(([id,v])=>{if(!v||ct.has(id))return;ct.add(id);for(const p of Object.values(DP)){const it=p.i.find(x=>x.id===id);if(it){dc+=it.c;dp+=it.p;has=true;break}}});ml.forEach(m=>{dc+=(m.c||m.cal||0);dp+=(m.p||m.prot||0);has=true});wc+=dc;wp+=dp;if(has)wd++}$('wkStats').innerHTML=`<div class="stat-box"><div class="stat-val">${Math.round(wd?wc/wd:0)}</div><div class="stat-label">일평균kcal</div></div><div class="stat-box"><div class="stat-val">${Math.round(wd?wp/wd:0)}</div><div class="stat-label">일평균단백질</div></div><div class="stat-box"><div class="stat-val">${wd}/7</div><div class="stat-label">기록일</div></div>`}
+
+function copyReview(){
+  const days=parseInt($('reviewDays').value)||7,p=gP();
+  let prompt=`나의 식단·운동 데이터를 점검해주세요.\n\n`;
+  prompt+=`[인적사항]\n남성 174cm ${p.weight}kg (목표 ${p.goalWeight}kg)\n마운자로 복용 중\n일일 목표: ${p.calGoal}kcal / 단백질 ${p.protGoal}g\n러닝 목표: 2026년 12월 Sub-55 10K (5:30/km)\n\n`;
+  
+  prompt+=`[최근 ${days}일 식단·운동 기록]\n`;
+  const now=new Date();
+  for(let i=0;i<days;i++){
+    const d=new Date(now);d.setDate(d.getDate()-i);const s=ds(d);
+    const ch=gL('fs_dietChecks_'+s,{}),ml=gL('fs_generalMeals_'+s,[]);
+    const runs=gL('fs_runRecords',[]).filter(r=>r.date===s);
+    const wks=gL('fs_workoutRecords',[]).filter(w=>w.date===s);
+    
+    // Diet
+    let dc=0,dp=0,items=[];const ct=new Set();
+    Object.entries(ch).forEach(([id,v])=>{if(!v||ct.has(id))return;ct.add(id);
+      for(const pl of Object.values(DP)){const it=pl.i.find(x=>x.id===id);if(it){dc+=it.c;dp+=it.p;items.push(it.n);break}}});
+    ml.forEach(m=>{dc+=(m.c||m.cal||0);dp+=(m.p||m.prot||0);items.push(m.n||m.name)});
+    
+    prompt+=`\n📅 ${s}\n`;
+    if(items.length) prompt+=`  식단: ${items.join(', ')} (${dc}kcal/${dp}g)\n`;
+    else prompt+=`  식단: 기록 없음\n`;
+    if(runs.length) runs.forEach(r=>{prompt+=`  러닝: ${r.distance}km ${r.time} (${fP(r.paceSeconds)}/km) ${r.shoe} ${r.calories}kcal\n`});
+    if(wks.length) wks.forEach(w=>{prompt+=`  웨이트: ${w.duration}분 ${w.calories}kcal\n`});
+    if(!runs.length&&!wks.length) prompt+=`  운동: 없음\n`;
+  }
+  
+  prompt+=`\n[분석 요청]\n1. 칼로리·단백질 목표 달성률 평가\n2. 영양 균형 (탄·단·지 비율)\n3. 운동량 대비 식단 적정성\n4. 부족한 영양소 및 개선 제안\n5. 러닝 훈련일의 탄수화물 보충 적절성\n6. 전반적인 감량 진행 평가 및 조언`;
+  
+  navigator.clipboard.writeText(prompt).then(()=>{$('reviewBtn').textContent='✅ 복사!';setTimeout(()=>$('reviewBtn').textContent='📋 복사',2000)});
+}
 
 // WEIGHT TIMER
 function rEP(){$('exPrev').innerHTML=EXS.map(ex=>`<div class="ex-item"><div class="ex-thumb" style="border:1.5px solid ${EC[ex.id]}22" id="th_${ex.id}">${EX_SVG[ex.id]}</div><div class="ex-info"><div class="name">${ex.name}</div><div class="detail">${ex.type==='time'?ex.duration+'초':ex.reps+'회'} × ${ex.sets}세트</div></div></div>`).join('');EXS.forEach(ex=>{const img=new Image();img.onload=function(){const t=document.getElementById('th_'+ex.id);if(t){t.innerHTML='';img.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:8px';t.appendChild(img)}};img.src=ex.img})}

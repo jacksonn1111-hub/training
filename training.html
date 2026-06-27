@@ -325,7 +325,9 @@ function showDay(s){
   // General meals
   h+='<div class="day-detail-section"><h4>🍽️ 일반식</h4>';
   h+=ml.length?ml.map((m,i)=>`<div class="check-item"><div class="check-info"><div class="check-name">${m.n||m.name}</div><div class="check-meta">${m.c||m.cal||0}kcal · ${m.p||m.prot||0}g</div></div><span style="color:var(--red);cursor:pointer" onclick="rmMealDay(${i},'${s}')">✕</span></div>`).join(''):'<div class="text-sm text-muted">없음</div>';
-  h+=`<div style="display:flex;gap:6px;margin-top:8px"><input class="input" id="mdName" placeholder="음식명" style="flex:1"><input class="input" id="mdCal" placeholder="kcal" type="number" style="width:55px"><input class="input" id="mdProt" placeholder="단백질" type="number" style="width:50px"><button class="btn btn-primary btn-sm" onclick="addMealDay('${s}')">+</button></div></div>`;
+  h+=`<div style="display:flex;gap:6px;margin-top:8px"><select class="input" id="mdCat" onchange="fMealsDay()" style="flex:1"><option value="">카테고리</option><option value="korean">한식</option><option value="western">양식</option><option value="japanese">일식</option><option value="chinese">중식</option></select><select class="input" id="mdSel" style="flex:1"><option value="">음식 선택</option></select></div>`;
+  h+=`<div style="display:flex;gap:6px;margin-top:6px"><input class="input" id="mdName" placeholder="직접 입력" style="flex:1"><input class="input" id="mdCal" placeholder="kcal" type="number" style="width:55px"><input class="input" id="mdProt" placeholder="단백질" type="number" style="width:50px"></div>`;
+  h+=`<button class="btn btn-primary btn-full mt-8" onclick="addMealDay('${s}')">추가</button></div>`;
   // Summary
   let tc=0,tp=0;Object.entries(ch).forEach(([id,v])=>{if(!v)return;const it=allItems.find(x=>x.id===id);if(it){tc+=it.c;tp+=it.p}});
   ml.forEach(m=>{tc+=(m.c||m.cal||0);tp+=(m.p||m.prot||0)});
@@ -334,7 +336,14 @@ function showDay(s){
   $('dayModalBody').innerHTML=h;$('dayModal').classList.add('show')}
 function tDCDay(id,s){const k='fs_dietChecks_'+s,c=gL(k,{});c[id]=!c[id];sL(k,c);showDay(s);rCal();if(s===td()){rDL();uDT();rDS()}}
 function rmMealDay(i,s){const k='fs_generalMeals_'+s,m=gL(k,[]);m.splice(i,1);sL(k,m);showDay(s);rCal();if(s===td()){rML();uDT();rDS()}}
-function addMealDay(s){const n=$('mdName').value;if(!n)return;const c=parseInt($('mdCal').value)||0,p=parseInt($('mdProt').value)||0;const k='fs_generalMeals_'+s,ml=gL(k,[]);ml.push({n,c,p,t:new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})});sL(k,ml);showDay(s);rCal();if(s===td()){rML();uDT();rDS()}}
+function fMealsDay(){const cat=$('mdCat').value,sel=$('mdSel');sel.innerHTML='<option value="">음식 선택</option>';if(cat&&GM[cat])GM[cat].forEach((m,i)=>{sel.innerHTML+=`<option value="${cat}_${i}">${m.n} (${m.c}/${m.p}g)</option>`})}
+function addMealDay(s){
+  let n,c,p;const sv=$('mdSel')&&$('mdSel').value;
+  if(sv){const[cat,idx]=sv.split('_');const m=GM[cat][parseInt(idx)];n=m.n;c=m.c;p=m.p}
+  else if($('mdName').value){n=$('mdName').value;c=parseInt($('mdCal').value)||0;p=parseInt($('mdProt').value)||0}
+  else return;
+  const k='fs_generalMeals_'+s,ml=gL(k,[]);ml.push({n,c,p,t:new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})});sL(k,ml);
+  showDay(s);rCal();if(s===td()){rML();uDT();rDS()}}
 function closeModal(id){$(id).classList.remove('show')}
 
 // SETTINGS
